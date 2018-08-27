@@ -1,0 +1,6 @@
+CREATE TABLE public.Test
+(
+	Id UUID NOT NULL,
+	Version INTEGER NOT NULL,
+  CONSTRAINT PK_Import PRIMARY KEY (Id)
+)

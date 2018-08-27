@@ -1,0 +1,12 @@
+// Rename this file to config.json to use
+{
+    "DEFAULT": {
+        "DB_NAME": "campaign-api-sync"
+    },
+    "TEST": {
+        "HOST": "localhost",
+        "DB_USER": "postgres",
+        "DB_PASSWORD": "...",
+        "API_URL": "https://netfile.com/Connect2/api/public"
+    }
+}
