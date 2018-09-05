@@ -7,6 +7,13 @@
         "HOST": "localhost",
         "DB_USER": "postgres",
         "DB_PASSWORD": "...",
-        "API_URL": "https://netfile.com/Connect2/api/public"
+        "API_URL": "http://localhost:12060/api"
+    },
+    "LIVE": {
+        "HOST": "localhost",
+        "DB_NAME": "campaign-api-sync",
+        "DB_USER": "postgres",
+        "DB_PASSWORD": "...",
+        "API_URL": "https://netfile.com/filing/api"
     }
 }
