@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import requests
+import logging
 from models import SystemReport
 
 
@@ -19,7 +20,16 @@ class CampaignApiHttpClient:
         name = response.json()['name']
         general_status = response.json()['generalStatus']
         components = response.json()['components']
-        return SystemReport(name, general_status, components)
+        system_report = SystemReport(name, general_status, components)
+        logging.debug('General Status: %s', system_report.general_status)
+        logging.debug('General Status: %s', system_report.name)
+        for component in system_report.components:
+            logging.debug('\tComponent Name: %s', component.name)
+            logging.debug('\tComponent Message: %s', component.message)
+            logging.debug('\tComponent status: %s', component.status)
+            logging.debug('\tComponent Build DateTime: %s', component.build_date_time)
+            logging.debug('\tComponent Build Version: %s', component.build_version)
+        return system_report
 
     def create_subscription(self):
         pass
@@ -28,9 +38,6 @@ class CampaignApiHttpClient:
         pass
 
     def end_session(self):
-        pass
-
-    def start_sync(self):
         pass
 
 

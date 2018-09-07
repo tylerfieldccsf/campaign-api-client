@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import os
 import psycopg2
+import logging
 
 
 class PostgresDbUtil:
@@ -19,8 +20,10 @@ class PostgresDbUtil:
         try:
             cursor = self.conn.cursor()
 
+            logging.debug("Executing SQL scripts")
             for filename in os.listdir("../resources/sql"):
                 if filename.endswith(".sql"):
+                    logging.debug("Executing %s", filename)
                     sql_file = open("../resources/sql/" + filename, "r")
                     sql = sql_file.read()
                     cursor.execute(sql)
@@ -31,10 +34,12 @@ class PostgresDbUtil:
             print("Error: %s" % ex)
 
     def drop_schema(self):
+        logging.debug("Dropping Schema")
         cursor = self.conn.cursor()
         cursor.execute("""DROP SCHEMA public CASCADE;CREATE SCHEMA public;""")
         self.conn.commit()
 
     def rebuild_schema(self):
+        logging.debug("Rebuilding Schema")
         self.drop_schema()
         self.execute_sql_scripts()
