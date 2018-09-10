@@ -1,13 +1,12 @@
 import unittest
-from db.db_util import PostgresDbUtil
 import json
+from db.db_util import PostgresDbUtil
+from tests.data_factory import *
 
 
 class TestCreateDB(unittest.TestCase):
 
-    def test_connect_db(self):
-        """Rebuild campaign-api-sync database schema. This will drop existing tables during rebuild."""
-
+    def setUp(self):
         with open('../resources/config.json', 'r') as f:
             config = json.load(f)
 
@@ -15,8 +14,28 @@ class TestCreateDB(unittest.TestCase):
         db_name = config['TEST']['DB_NAME']
         db_user = config['TEST']['DB_USER']
         db_password = config['TEST']['DB_PASSWORD']
-        postgres_util = PostgresDbUtil(db_host, db_name, db_user, db_password)
-        postgres_util.rebuild_schema()
+        self.postgres_util = PostgresDbUtil(db_host, db_name, db_user, db_password)
+        self.assertIsNotNone(self.postgres_util)
+
+    def test_rebuild_db(self):
+        """Rebuild campaign-api-sync database schema. This will drop existing tables during rebuild."""
+        self.postgres_util.rebuild_schema()
+
+    def test_flare_activity(self):
+        # Persist a FlareActivity
+        self.postgres_util.save_flare_activity(flare_activity)
+
+        # fetch FlareActivity and assert stuff
+        activity = self.postgres_util.fetch_flare_activity(flare_activity.id)
+        self.assertIsNotNone(activity)
+        self.assertEquals("New", activity.filing_activity_type)
+        self.assertEquals("I come from the land down under", activity.origin)
+        self.assertEquals("filing_101", activity.origin_filing_id)
+
+        # delete the FlareActivity
+        self.postgres_util.delete_flare_activity(flare_activity.id)
+        activity = self.postgres_util.fetch_flare_activity(flare_activity.id)
+        self.assertIsNone(activity)
 
 
 if __name__ == '__main__':
