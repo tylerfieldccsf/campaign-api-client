@@ -88,3 +88,41 @@ class PostgresDbUtil:
         except Exception as ex:
             print(ex)
             self.conn.rollback()
+
+    def save_flare_element(self, element):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("""INSERT INTO flare_element (id, creation_date, activity_id, activity_type, element_specification, 
+            origin, origin_filing_id, agency_id, apply_to_filing_id, publish_sequence, element_index, model_json) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                           (str(element.id), element.creation_date, str(element.activity_id), element.filing_activity_type.name,
+                            element.element_specification, element.origin, element.origin_filing_id, element.agency_id,
+                            element.apply_to_filing_id, element.publish_sequence, element.element_index,
+                            element.model_json))
+            self.conn.commit()
+            cursor.close()
+        except Exception as ex:
+            print(ex)
+            self.conn.rollback()
+
+    def fetch_flare_element(self, element_id):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("""SELECT * FROM flare_element WHERE id=%s""", (str(element_id),))
+            a = cursor.fetchone()
+            self.conn.commit()
+            cursor.close()
+            return a if a is None else FlareElement(a[0], a[1], a[2], a[3], a[12], a[5], a[6], a[7], a[8], a[9], a[4], a[10], a[11])
+        except Exception as ex:
+            print(ex)
+            self.conn.rollback()
+
+    def delete_flare_element(self, element_id):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("""DELETE FROM flare_element WHERE id=%s""", (str(element_id),))
+            self.conn.commit()
+            cursor.close()
+        except Exception as ex:
+            print(ex)
+            self.conn.rollback()

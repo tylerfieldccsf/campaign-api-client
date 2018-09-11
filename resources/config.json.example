@@ -7,7 +7,7 @@
         "HOST": "localhost",
         "DB_USER": "postgres",
         "DB_PASSWORD": "...",
-        "API_URL": "http://localhost:12060/api"
+        "API_URL": "http://localhost:12061/api"
     },
     "LIVE": {
         "HOST": "localhost",

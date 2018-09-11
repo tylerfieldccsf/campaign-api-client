@@ -41,7 +41,7 @@ from .exceptions import *
 
 logger = logging.getLogger()
 stream_handler = logging.StreamHandler()
-file_handler = logging.FileHandler('/logs/log.txt', 'a')
+file_handler = logging.FileHandler('./logs/log.txt', 'a')
 formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)

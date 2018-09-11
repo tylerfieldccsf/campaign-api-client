@@ -69,7 +69,7 @@ class FlareElement:
     :param creation_date: integer filing activity identifier
     :param activity_id: integer filing activity identifier
     :param filing_activity_type: integer filing activity identifier
-    :param element_specification: integer filing activity identifier
+    :param filing_specification: integer filing activity identifier
     :param origin: integer filing activity identifier
     :param origin_filing_id: integer filing activity identifier
     :param agency_id: integer filing activity identifier

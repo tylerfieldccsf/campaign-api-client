@@ -23,7 +23,7 @@ class TestSync(unittest.TestCase):
         system_report = self.http_client.fetch_system_report()
         self.assertIsNotNone(system_report)
         self.assertEqual('Ready', system_report.general_status)
-        self.assertEqual('FilingCapsule', system_report.name)
+        self.assertEqual('FilingExt', system_report.name)
         self.assertTrue(system_report.components.__len__() > 0)
         logging.info("System Report Test Complete...")
 

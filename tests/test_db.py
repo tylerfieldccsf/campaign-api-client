@@ -37,6 +37,22 @@ class TestCreateDB(unittest.TestCase):
         activity = self.postgres_util.fetch_flare_activity(flare_activity.id)
         self.assertIsNone(activity)
 
+    def test_flare_element(self):
+        # Persist a FlareActivity
+        self.postgres_util.save_flare_element(flare_element)
+
+        # fetch FlareActivity and assert stuff
+        element = self.postgres_util.fetch_flare_element(flare_element.id)
+        self.assertIsNotNone(element)
+        self.assertEquals("New", element.filing_activity_type)
+        self.assertEquals("I come from the land down under", element.origin)
+        self.assertEquals("filing_101", element.origin_filing_id)
+
+        # delete the FlareActivity
+        self.postgres_util.delete_flare_element(flare_element.id)
+        element = self.postgres_util.fetch_flare_element(flare_element.id)
+        self.assertIsNone(element)
+
 
 if __name__ == '__main__':
     unittest.main()
