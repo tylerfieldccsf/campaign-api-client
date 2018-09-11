@@ -37,7 +37,10 @@ class CampaignApiHttpClient:
     def start_session(self):
         pass
 
-    def end_session(self):
+    def end_session(self, session_id):
+        pass
+
+    def sync_topic(self, subscription_id, session_id, topic):
         pass
 
 
