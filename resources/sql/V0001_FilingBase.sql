@@ -89,6 +89,7 @@ CREATE TABLE public.Flare_Element
   Publish_Sequence BIGINT,
   Element_Index TEXT NOT NULL,
   Model_Json jsonb,
+  Filing_Specification TEXT,
   CONSTRAINT Pk_Flare_Element PRIMARY KEY (Id)
 )
 WITH (
