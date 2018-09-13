@@ -20,9 +20,9 @@ class SpecificationRef:
         self.version = version
 
 
-class FlareActivity:
+class FilingActivityV1:
     """
-    FlareActivity does blah, blah
+    FilingActivityV1 does blah, blah
     :param id_arg: integer filing activity identifier
     :param version: description of arg
     :param creation_date: description of arg
@@ -56,9 +56,9 @@ class FlareActivity:
         return "Activity Type: {activityType}, origin: {origin} ID: {id}".format(activityType=self.filing_activity_type, origin=self.origin, id=self.id)
 
 
-class FlareElement:
+class FilingElementV1:
     """
-    FlareElement does blah, blah
+    FlilingElementV1 does blah, blah
     :param id_arg: integer filing activity identifier
     :param creation_date: integer filing activity identifier
     :param activity_id: integer filing activity identifier
@@ -92,28 +92,28 @@ class FlareElement:
         self.model_json = model_json
 
 
-class ContentLinkType(Enum):
-    Cafs = 1
-    PostgresLargeObject = 2
-    Http = 3
-    Other = 4
-
-
-class ContentLink:
-    """
-    ContentLink does blah, blah
-    :param name: description of arg
-    :param media_type: description of arg
-    :param link_type: description of arg
-    :param address: description of arg
-    """
-
-    def __init__(self, name, media_type, link_type, address):
-        """Class constructor"""
-        self.name = name
-        self.media_type = media_type
-        self.link_type = link_type
-        self.address = address
+# class ContentLinkType(Enum):
+#     Cafs = 1
+#     PostgresLargeObject = 2
+#     Http = 3
+#     Other = 4
+#
+#
+# class ContentLink:
+#     """
+#     ContentLink does blah, blah
+#     :param name: description of arg
+#     :param media_type: description of arg
+#     :param link_type: description of arg
+#     :param address: description of arg
+#     """
+#
+#     def __init__(self, name, media_type, link_type, address):
+#         """Class constructor"""
+#         self.name = name
+#         self.media_type = media_type
+#         self.link_type = link_type
+#         self.address = address
 
 
 class SystemReport:

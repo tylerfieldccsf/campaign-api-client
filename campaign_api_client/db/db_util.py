@@ -52,10 +52,10 @@ class PostgresDbUtil:
         self.drop_schema()
         self.execute_sql_scripts()
 
-    def save_flare_activity(self, activity):
+    def save_filing_activity(self, activity):
         try:
             cursor = self.conn.cursor()
-            cursor.execute("""INSERT INTO flare_activity (id, version, creation_date, last_update, activity_type,
+            cursor.execute("""INSERT INTO filing_activity (id, version, creation_date, last_update, activity_type,
             filing_specification_key, origin, origin_filing_id, apply_to_filing_id, publish_sequence)
             VALUES (%s, %s, %s, %s,%s, %s,%s, %s,%s, %s)""",
                            (str(activity.id), activity.version, activity.creation_date, activity.last_update,
@@ -67,32 +67,32 @@ class PostgresDbUtil:
             print(ex)
             self.conn.rollback()
 
-    def fetch_flare_activity(self, activity_id):
+    def fetch_filing_activity(self, activity_id):
         try:
             cursor = self.conn.cursor()
-            cursor.execute("""SELECT * FROM flare_activity WHERE id=%s""", (str(activity_id),))
+            cursor.execute("""SELECT * FROM filing_activity WHERE id=%s""", (str(activity_id),))
             a = cursor.fetchone()
             self.conn.commit()
             cursor.close()
-            return a if a is None else FlareActivity(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10])
+            return a if a is None else FilingActivityV1(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10])
         except Exception as ex:
             print(ex)
             self.conn.rollback()
 
-    def delete_flare_activity(self, activity_id):
+    def delete_filing_activity(self, activity_id):
         try:
             cursor = self.conn.cursor()
-            cursor.execute("""DELETE FROM flare_activity WHERE id=%s""", (str(activity_id),))
+            cursor.execute("""DELETE FROM filing_activity WHERE id=%s""", (str(activity_id),))
             self.conn.commit()
             cursor.close()
         except Exception as ex:
             print(ex)
             self.conn.rollback()
 
-    def save_flare_element(self, element):
+    def save_filing_element(self, element):
         try:
             cursor = self.conn.cursor()
-            cursor.execute("""INSERT INTO flare_element (id, creation_date, activity_id, activity_type, element_specification, 
+            cursor.execute("""INSERT INTO filing_element (id, creation_date, activity_id, activity_type, element_specification, 
             origin, origin_filing_id, agency_id, apply_to_filing_id, publish_sequence, element_index, model_json, filing_specification) 
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                            (str(element.id), element.creation_date, str(element.activity_id), element.filing_activity_type.name,
@@ -105,22 +105,22 @@ class PostgresDbUtil:
             print(ex)
             self.conn.rollback()
 
-    def fetch_flare_element(self, element_id):
+    def fetch_filing_element(self, element_id):
         try:
             cursor = self.conn.cursor()
-            cursor.execute("""SELECT * FROM flare_element WHERE id=%s""", (str(element_id),))
+            cursor.execute("""SELECT * FROM filing_element WHERE id=%s""", (str(element_id),))
             a = cursor.fetchone()
             self.conn.commit()
             cursor.close()
-            return a if a is None else FlareElement(a[0], a[1], a[2], a[3], a[12], a[5], a[6], a[7], a[8], a[9], a[4], a[10], a[11])
+            return a if a is None else FilingElementV1(a[0], a[1], a[2], a[3], a[12], a[5], a[6], a[7], a[8], a[9], a[4], a[10], a[11])
         except Exception as ex:
             print(ex)
             self.conn.rollback()
 
-    def delete_flare_element(self, element_id):
+    def delete_filing_element(self, element_id):
         try:
             cursor = self.conn.cursor()
-            cursor.execute("""DELETE FROM flare_element WHERE id=%s""", (str(element_id),))
+            cursor.execute("""DELETE FROM filing_element WHERE id=%s""", (str(element_id),))
             self.conn.commit()
             cursor.close()
         except Exception as ex:

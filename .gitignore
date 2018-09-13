@@ -3,3 +3,5 @@
 venv/
 resources/config.json
 tests/logs/
+*.pyc
+campaign_api_client/logs/

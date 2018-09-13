@@ -31,7 +31,7 @@ class SyncSubscriptionStatus(Enum):
     Canceled = 2
 
 
-class SyyncFilter:
+class SyncFilter:
     """
     A Filter represents custom selection criteria for a topic within a feed. Defined by the user within the Subscription
     :param topic_name: The name of the Topic the Filer applies to

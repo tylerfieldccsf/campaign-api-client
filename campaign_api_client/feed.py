@@ -16,14 +16,16 @@ class SyncFeed:
     :param topics: List of one or more Topic supported by the Feed. Reads are performed for a specific Topic
     """
     def __init__(self, id_arg, version, product_type, api_version, name, description, status, topics):
-        self.id_arg = id_arg
+        self.id = id_arg
         self.version = version
         self.product_type = product_type
         self.api_version = api_version
         self.name = name
         self.description = description
         self.status = status
-        self.topics = topics
+        self.topics = []
+        for topic in topics:
+            self.topics.append(SyncTopic(topic['name'], topic['description']))
 
 
 class SyncFeedCommand:
@@ -38,6 +40,22 @@ class SyncFeedCommand:
         self.command_type = command_type
         self.version = version
         self.permission_name = permission_name
+
+
+class SyncFeedResponse:
+    """
+    Response return from execution of a SyncFeed Command
+    :param execution_id: Id of the execution the command was performed withing
+    :param command_type: The type of command executed
+    :param feed: Representation of the SyncFeed after the command was executed
+    :param description: Description of the command performed
+    """
+    def __init__(self, execution_id, command_type, feed, description):
+        self.execution_id = execution_id
+        self.command_type = command_type
+        self.feed = SyncFeed(feed.id, feed.version, feed.product_type, feed.api_version, feed.name,
+                             feed.description, feed.status, feed.topics)
+        self.description = description
 
 
 class SyncTopic:
