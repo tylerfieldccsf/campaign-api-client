@@ -35,9 +35,7 @@ usage:
 :license:
 """
 
-import logging
 from .campaign_api_client import *
-from .exceptions import *
 
 logger = logging.getLogger()
 stream_handler = logging.StreamHandler()

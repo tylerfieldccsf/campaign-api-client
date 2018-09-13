@@ -5,7 +5,7 @@ import logging
 from models import *
 
 
-class PostgresDbUtil:
+class CampaignApiRepository:
     def __init__(self, host, db, user, password):
         conn_string = f"host='{host}' dbname='{db}' user='{user}' password='{password}'"
         logging.debug('Connecting to database')

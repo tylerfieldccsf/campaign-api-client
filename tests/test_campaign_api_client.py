@@ -5,7 +5,7 @@ import logging
 from campaign_api_client import CampaignApiClient
 
 
-class TestApiClient(unittest.TestCase):
+class TestCampaignApiClient(unittest.TestCase):
 
     def setUp(self):
         with open('../resources/config.json', 'r') as f:
@@ -18,10 +18,10 @@ class TestApiClient(unittest.TestCase):
         db_password = config['TEST']['DB_PASSWORD']
         self.api_client = CampaignApiClient(api_url, db_host, db_name, db_user, db_password)
 
-    def test1(self):
+    def test01(self):
         campaign_api_client.sync_filings()
 
-    def test_system_report(self):
+    def test02_system_report(self):
         logging.info("Running System Report Test...")
         system_report = self.api_client.fetch_system_report()
         self.assertIsNotNone(system_report)

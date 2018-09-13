@@ -3,7 +3,7 @@
 import requests
 import logging
 import json
-from db_util import PostgresDbUtil
+from campaign_api_repository import CampaignApiRepository
 from feed import *
 from subscription import *
 from session import *
@@ -20,7 +20,7 @@ class CampaignApiClient:
             "Authorization": "Basic ZGV2QG5ldGZpbGUuY29tOnBhc3N3b3JkOTk="
         }
         self.base_url = base_url
-        self.postgres_util = PostgresDbUtil(db_host, db_name, db_user, db_password)
+        self.postgres_util = CampaignApiRepository(db_host, db_name, db_user, db_password)
 
     def fetch_system_report(self):
         url = self.base_url + Routes.SYSTEM_REPORT
@@ -92,7 +92,7 @@ class CampaignApiClient:
     def main(self):
         try:
             # Build SQL DB
-            # self.create_database_schema()
+            self.create_database_schema()
 
             # Verify the system is ready
             sys_report = self.fetch_system_report()
@@ -101,19 +101,15 @@ class CampaignApiClient:
 
                 # Retrieve available SyncFeeds
                 feed = self.retrieve_sync_feed()
-                logging.info(feed)
 
                 # Create SyncSubscription or use existing SyncSubscription with feed specified
                 subscription = self.create_subscription(feed.id, "Feed_1")
-                logging.info(subscription)
 
                 # Create SyncSession with SyncSubscription ID specified
                 sync_session = self.create_session(subscription.id)
-                logging.info(sync_session)
 
                 # Read FilingActivities Topic and persist results
                 activities_qr = self.fetch_sync_topic(sync_session.id, "activities")
-                logging.info(activities_qr)
                 for a in activities_qr.results:
                     activity = FilingActivityV1(a['id'], a['version'], a['creationDate'], a['lastUpdate'], a['activityType'],
                                      a['filingSpecificationKey'], a['origin'], a['originFilingId'], a['agencyId'],
@@ -122,7 +118,6 @@ class CampaignApiClient:
 
                 # Read FilingElements Topic and persist results
                 elements_qr = self.fetch_sync_topic(sync_session.id, "elements")
-                logging.info(elements_qr)
                 for e in elements_qr.results:
                     element = FilingElementV1(e['id'], e['creationDate'], e['activityId'], e['activityType'],
                                               e['filingSpecificationKey'], e['origin'], e['originFilingId'],
