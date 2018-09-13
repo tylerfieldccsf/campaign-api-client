@@ -3,6 +3,19 @@
 from enum import Enum
 
 
+class ListQueryResult:
+    def __init__(self, results, offset, has_previous_page, has_next_page, limit, total_count, empty, count, page_number):
+        self.results = results
+        self.offset = offset
+        self.hasPreviousPage = has_previous_page
+        self.hasNextPage = has_next_page
+        self.limit = limit
+        self.totalCount = total_count
+        self.empty = empty
+        self.count = count
+        self.page_number = page_number
+
+
 class FilingActivityType(Enum):
     New = 1
     Attach = 2
@@ -11,13 +24,6 @@ class FilingActivityType(Enum):
     Replace = 5
     Reparse = 6
     Delete = 7
-
-
-class SpecificationRef:
-    def __init__(self, org, name, version):
-        self.org = org
-        self.name = name
-        self.version = version
 
 
 class FilingActivityV1:
@@ -74,14 +80,14 @@ class FilingElementV1:
     :param model_json: integer filing activity identifier
     """
 
-    def __init__(self, id_arg, creation_date, activity_id, filing_activity_type, filing_specification, origin,
+    def __init__(self, id_arg, creation_date, activity_id, filing_activity_type, filing_specification_key, origin,
                  origin_filing_id, agency_id, apply_to_filing_id, publish_sequence, element_specification,
                  element_index, model_json):
         self.id = id_arg
         self.creation_date = creation_date
         self.activity_id = activity_id
         self.filing_activity_type = filing_activity_type
-        self.filing_specification = filing_specification
+        self.filing_specification_key = filing_specification_key
         self.origin = origin
         self.origin_filing_id = origin_filing_id
         self.agency_id = agency_id

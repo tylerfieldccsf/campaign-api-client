@@ -7,7 +7,7 @@ id_arg = uuid.uuid4()
 version = 0
 creation_date = datetime.now()
 last_update = datetime.now()
-filing_activity_type = FilingActivityType.New
+filing_activity_type = FilingActivityType.New.name
 filing_specification_key = "filing:specification:key"
 origin = "I come from the land down under"
 origin_filing_id = "filing_101"
@@ -16,7 +16,7 @@ apply_to_filing_id = None
 publish_sequence = 25
 
 address = "4E3FF207CBE1820E09BF8D061ACECF76C368D009FFEE929DCFECDA7FEF8348A8124586AC1148D9C0F99C9E91C09CC905E58AE01A5C23E6186914F07718ABF404 "
-filing_activity = FilingActivityV1(id_arg, version, creation_date, last_update, filing_activity_type, filing_specification_key,
+filing_activity = FilingActivityV1(str(id_arg), version, creation_date, last_update, filing_activity_type, filing_specification_key,
                                    origin, origin_filing_id, agency_id, apply_to_filing_id, publish_sequence)
 
 element_specification = "test:element:specification"
@@ -36,6 +36,6 @@ json_body = """{"date": "2015-10-11T00:00:00", "amount": 500.00, "isMemo": false
  "state": "", "isEmpty": true, "cityStateZip": "", "streetAddress": ""}, "intermediaryEmployer": "", 
  "contributorOccupation": "Chief", "contributorCommitteeId": "", "intermediaryOccupation": "", 
  "intermediaryCommitteeId": "", "contributorIsSelfEmployed": false, "intermediaryIsSelfEmployed": false}"""
-filing_element = FilingElementV1(uuid.uuid4(), creation_date, id_arg, filing_activity_type, filing_specification_key,
+filing_element = FilingElementV1(str(uuid.uuid4()), creation_date, str(id_arg), filing_activity_type, filing_specification_key,
                                  origin, origin_filing_id, agency_id, apply_to_filing_id, publish_sequence,
                                  element_specification, element_index, json_body)

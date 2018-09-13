@@ -3,10 +3,11 @@
 import requests
 import logging
 import json
-from models import SystemReport
-from db.db_util import PostgresDbUtil
+from db_util import PostgresDbUtil
 from feed import *
 from subscription import *
+from session import *
+from models import *
 
 
 class CampaignApiClient:
@@ -44,27 +45,49 @@ class CampaignApiClient:
             'feedId': feed_id,
             'name': name
         }
-        response = requests.post(url, data=json.dumps(body), headers=self.headers)
-        return SyncSubscription(response)
+        sub_response = self.post_http_request(url, self.headers, body)
+        sub = sub_response['subscription']
+        return SyncSubscription(sub['id'], sub['version'], sub['identityId'], sub['feedId'], sub['name'],
+                                sub['autoComplete'],
+                                sub['status'], sub['filters'])
 
-    def start_session(self):
-        pass
+    def create_session(self, subscription_id):
+        url = self.base_url + Routes.SYNC_SESSIONS
+        body = {
+            'subscriptionId': subscription_id
+        }
+        session_reponse = self.post_http_request(url, self.headers, body)
+        session = session_reponse['session']
+        return SyncSession(session['id'], session['version'], session['subscriptionId'], session['identityId'],
+                           session['autoComplete'], session['status'], session['sequenceRangeBegin'],
+                           session['sequenceRangeEnd'], session['dateRangeBegin'], session['dateRangeEnd'],
+                           session['startedAt'], session['endedAt'], session['reads'])
 
     def end_session(self, session_id):
         pass
 
-    def sync_topic(self, subscription_id, session_id, topic):
-        pass
+    def fetch_sync_topic(self, session_id, topic):
+        url = f'{self.base_url}/{Routes.SYNC_SESSIONS}/{session_id}/{topic}'
+        response = requests.get(url, headers=self.headers)
+        qr = response.json()
+        return ListQueryResult(qr['results'], qr['offset'], qr['hasPreviousPage'], qr['hasNextPage'], qr['limit'],
+                               qr['totalCount'], qr['empty'], qr['count'], qr['pageNumber'])
 
     def retrieve_sync_feed(self):
         url = self.base_url + Routes.SYNC_FEED
         response = requests.get(url, headers=self.headers)
         feed = response.json()
         return SyncFeed(feed['id'], feed['version'], feed['productType'], feed['apiVersion'], feed['name'],
-                        feed['description'], feed['status'],  feed['topics'])
+                        feed['description'], feed['status'], feed['topics'])
 
     def create_database_schema(self):
         self.postgres_util.rebuild_schema()
+
+    def post_http_request(self, url, headers, body=None):
+        response = requests.post(url, data=json.dumps(body), headers=headers)
+        if response.status_code not in [200, 201]:
+            raise Exception(f'Error requesting Url: {url}, Response code: {response.status_code}')
+        return response.json()
 
     def main(self):
         try:
@@ -76,18 +99,36 @@ class CampaignApiClient:
             if sys_report.general_status == 'Ready':
                 logging.info("Campaign API Sync is Ready")
 
-                # TODO - Retrieve available SyncFeeds
+                # Retrieve available SyncFeeds
                 feed = self.retrieve_sync_feed()
                 logging.info(feed)
 
-                # TODO - Create SyncSubscription or use existing SyncSubscription with feed specified
+                # Create SyncSubscription or use existing SyncSubscription with feed specified
                 subscription = self.create_subscription(feed.id, "Feed_1")
+                logging.info(subscription)
 
-                # TODO - Create SyncSession with SyncSubscription ID specified
+                # Create SyncSession with SyncSubscription ID specified
+                sync_session = self.create_session(subscription.id)
+                logging.info(sync_session)
 
-                # TODO - Read SyncSession SyncTopic by paging through HTTP calls
+                # Read FilingActivities Topic and persist results
+                activities_qr = self.fetch_sync_topic(sync_session.id, "activities")
+                logging.info(activities_qr)
+                for a in activities_qr.results:
+                    activity = FilingActivityV1(a['id'], a['version'], a['creationDate'], a['lastUpdate'], a['activityType'],
+                                     a['filingSpecificationKey'], a['origin'], a['originFilingId'], a['agencyId'],
+                                     a['applyToFilingId'], a['publishSequence'])
+                    self.postgres_util.save_filing_activity(activity)
 
-                # TODO - Complete SyncSession. POST /api/v1/sessions/{SESSION_ID}/commands/complete
+                # Read FilingElements Topic and persist results
+                elements_qr = self.fetch_sync_topic(sync_session.id, "elements")
+                logging.info(elements_qr)
+                for e in elements_qr.results:
+                    element = FilingElementV1(e['id'], e['creationDate'], e['activityId'], e['activityType'],
+                                              e['filingSpecificationKey'], e['origin'], e['originFilingId'],
+                                              e['agencyId'], e['applyToFilingId'], e['publishSequence'],
+                                              e['elementSpecification'], e['elementIndex'], json.dumps(e['modelJson']))
+                    self.postgres_util.save_filing_element(element)
             else:
                 logging.info("The Campaign API system status is %s and is not Ready", sys_report.general_status)
         except Exception as ex:

@@ -1,10 +1,11 @@
 import unittest
 import json
-from db.db_util import PostgresDbUtil
+import logging
+from db_util import PostgresDbUtil
 from tests.data_factory import *
 
 
-class TestCreateDB(unittest.TestCase):
+class TestDB(unittest.TestCase):
 
     def setUp(self):
         with open('../resources/config.json', 'r') as f:
@@ -22,6 +23,7 @@ class TestCreateDB(unittest.TestCase):
         self.postgres_util.rebuild_schema()
 
     def test_filing_activity(self):
+        logging.info("Running Filing Activity Test...")
         # Persist a FilingActivity
         self.postgres_util.save_filing_activity(filing_activity)
 
@@ -38,6 +40,7 @@ class TestCreateDB(unittest.TestCase):
         self.assertIsNone(activity)
 
     def test_filing_element(self):
+        logging.info("Running Filing Element Test...")
         # Persist a FilingActivity
         self.postgres_util.save_filing_element(filing_element)
 
