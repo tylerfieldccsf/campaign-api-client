@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from topics import *
+from subscription import *
 
 # Assign variables for FilingActivity and FilingElement
 id_arg = uuid.uuid4()
@@ -39,3 +40,8 @@ json_body = """{"date": "2015-10-11T00:00:00", "amount": 500.00, "isMemo": false
 filing_element = FilingElementV1(str(uuid.uuid4()), creation_date, str(id_arg), filing_activity_type, filing_specification_key,
                                  origin, origin_filing_id, agency_id, apply_to_filing_id, publish_sequence,
                                  element_specification, element_index, json_body)
+
+identity_id = str(uuid.uuid4())
+feed_id = str(uuid.uuid4())
+active_sync_subscription = SyncSubscription(str(uuid.uuid4()), version, identity_id, feed_id, "Test Feed", False, "active")
+canceled_sync_subscription = SyncSubscription(str(uuid.uuid4()), 1, identity_id, feed_id, "Test Feed", False, "canceled")

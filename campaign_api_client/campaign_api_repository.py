@@ -3,6 +3,7 @@ import os
 import psycopg2
 import logging
 from topics import *
+from subscription import *
 
 
 class CampaignApiRepository:
@@ -72,7 +73,7 @@ class CampaignApiRepository:
         logging.debug("Fetching Filing Activity")
         try:
             cursor = self.conn.cursor()
-            cursor.execute("""SELECT * FROM filing_activity WHERE id=%s""", (str(activity_id),))
+            cursor.execute("SELECT * FROM filing_activity WHERE id=%s", (str(activity_id),))
             a = cursor.fetchone()
             self.conn.commit()
             cursor.close()
@@ -85,7 +86,7 @@ class CampaignApiRepository:
         logging.debug("Deleting Filing Activity")
         try:
             cursor = self.conn.cursor()
-            cursor.execute("""DELETE FROM filing_activity WHERE id=%s""", (str(activity_id),))
+            cursor.execute("DELETE FROM filing_activity WHERE id=%s", (str(activity_id),))
             self.conn.commit()
             cursor.close()
         except Exception as ex:
@@ -113,7 +114,7 @@ class CampaignApiRepository:
         logging.debug("Fetching Filing Element")
         try:
             cursor = self.conn.cursor()
-            cursor.execute("""SELECT * FROM filing_element WHERE id=%s""", (str(element_id),))
+            cursor.execute("SELECT * FROM filing_element WHERE id=%s", (str(element_id),))
             a = cursor.fetchone()
             self.conn.commit()
             cursor.close()
@@ -126,7 +127,72 @@ class CampaignApiRepository:
         logging.debug("Deleting Filing Element")
         try:
             cursor = self.conn.cursor()
-            cursor.execute("""DELETE FROM filing_element WHERE id=%s""", (str(element_id),))
+            cursor.execute("DELETE FROM filing_element WHERE id=%s", (str(element_id),))
+            self.conn.commit()
+            cursor.close()
+        except Exception as ex:
+            logging.error(ex)
+            self.conn.rollback()
+
+    def save_sync_subscription(self, sub):
+        logging.debug("Saving Sync Subscription")
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("""INSERT INTO sync_subscription (id, version, identity_id, feed_id, name, auto_complete, status)
+                                VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                           (sub.id, sub.version, sub.identity_id, sub.feed_id, sub.name, sub.auto_complete, sub.status))
+            self.conn.commit()
+            cursor.close()
+        except Exception as ex:
+            logging.error(ex)
+            self.conn.rollback()
+
+    def fetch_subscription(self, subscription_id):
+        logging.debug("Fetching Active Subscription")
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT * FROM sync_subscription WHERE id=%s", (subscription_id,))
+            s = cursor.fetchone()
+            self.conn.commit()
+            cursor.close()
+            return s if s is None else SyncSubscription(s[0], s[1], s[2], s[3], s[4], s[5], s[6])
+        except Exception as ex:
+            logging.error(ex)
+            self.conn.rollback()
+
+    def fetch_active_subscriptions(self):
+        logging.debug("Fetching Active Subscriptions")
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT * FROM sync_subscription WHERE status='active'")
+            subs = cursor.fetchmany()
+            self.conn.commit()
+            cursor.close()
+            # return s if s is None else SyncSubscription(s[0], s[1], s[2], s[3], s[4], s[5], s[6], None)
+            subscriptions = []
+            for s in subs:
+                subscriptions.append(SyncSubscription(s[0], s[1], s[2], s[3], s[4], s[5], s[6]))
+            return subscriptions
+        except Exception as ex:
+            logging.error(ex)
+            self.conn.rollback()
+
+    def cancel_subscription(self, subscription_id):
+        logging.debug("Canceling Active Subscriptions")
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("UPDATE sync_subscription SET status='canceled' WHERE id=%s", (subscription_id,))
+            self.conn.commit()
+            cursor.close()
+        except Exception as ex:
+            logging.error(ex)
+            self.conn.rollback()
+
+    def delete_subscription(self, subscription_id):
+        logging.debug("Deleting Sync Subscription")
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("DELETE FROM sync_subscription WHERE id=%s", (subscription_id,))
             self.conn.commit()
             cursor.close()
         except Exception as ex:

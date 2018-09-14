@@ -56,6 +56,41 @@ class TestCampaignApiRepository(unittest.TestCase):
         element = self.repository.fetch_filing_element(filing_element.id)
         self.assertIsNone(element)
 
+    def test04_sync_subscription(self):
+        logging.info("Testing Sync Subscription")
+        # Save subscription
+        self.repository.save_sync_subscription(active_sync_subscription)
+
+        # Retrieve sub by ID
+        sub = self.repository.fetch_subscription(active_sync_subscription.id)
+        self.assertIsNotNone(sub)
+        self.assertEquals("Test Feed", sub.name)
+        self.assertEquals("active", sub.status)
+        self.assertEquals(0, sub.version)
+        self.assertEquals(active_sync_subscription.id, sub.id)
+        self.assertEquals(active_sync_subscription.identity_id, sub.identity_id)
+        self.assertEquals(active_sync_subscription.feed_id, sub.feed_id)
+        self.assertEquals(False, sub.auto_complete)
+
+        # Retrieve sub by fetchActiveSubs
+        is_found = False
+        subs = self.repository.fetch_active_subscriptions()
+        for s in subs:
+            if s.id == active_sync_subscription.id:
+                is_found = True
+        self.assertTrue(is_found)
+
+        # Cancel subscription
+        self.repository.cancel_subscription(active_sync_subscription.id)
+        sub = self.repository.fetch_subscription(active_sync_subscription.id)
+        self.assertIsNotNone(sub)
+        self.assertEquals("canceled", sub.status)
+
+        # Delete the subscription
+        self.repository.delete_subscription(active_sync_subscription.id)
+        sub = self.repository.fetch_subscription(active_sync_subscription.id)
+        self.assertIsNone(sub)
+
 
 if __name__ == '__main__':
     unittest.main()

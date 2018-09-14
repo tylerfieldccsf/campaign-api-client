@@ -15,7 +15,7 @@ class SyncSubscription:
     :param status: Status of the Subscription
     :param filters: Optional set of SyncFilters defined this Subscription
     """
-    def __init__(self, id_arg, version, identity_id, feed_id, name, auto_complete, status, filters):
+    def __init__(self, id_arg, version, identity_id, feed_id, name, auto_complete, status):
         self.id = id_arg
         self.version = version
         self.identity_id = identity_id
@@ -23,7 +23,6 @@ class SyncSubscription:
         self.name = name
         self.auto_complete = auto_complete
         self.status = status
-        self.filters = filters
 
 
 class SyncSubscriptionStatus(Enum):

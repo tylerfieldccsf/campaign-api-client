@@ -46,8 +46,7 @@ class CampaignApiClient:
         sub_response = self.post_http_request(url, body)
         sub = sub_response['subscription']
         return SyncSubscription(sub['id'], sub['version'], sub['identityId'], sub['feedId'], sub['name'],
-                                sub['autoComplete'],
-                                sub['status'], sub['filters'])
+                                sub['autoComplete'], sub['status'])
 
     def create_session(self, subscription_id):
         url = self.base_url + Routes.SYNC_SESSIONS
@@ -122,7 +121,7 @@ class CampaignApiClient:
                 # Create SyncSubscription or use existing SyncSubscription with feed specified
                 subscription = self.create_subscription(feed.id, "Feed_1")
 
-                # Create SyncSession with SyncSubscription ID specified
+                # Create SyncSession
                 sync_session = self.create_session(subscription.id)
 
                 # Synchronize Filing Activities

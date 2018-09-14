@@ -45,3 +45,19 @@ WITH (
 ALTER TABLE public.Filing_Element OWNER TO postgres;
 CREATE INDEX Idx_Filing_Element_Activity_Id ON Filing_Element(Activity_Id);
 CREATE INDEX Idx_Filing_Element_Element_Specification ON Filing_Element(Element_Specification);
+
+CREATE TABLE public.Sync_Subscription
+(
+    Id UUID NOT NULL,
+    Version INTEGER NOT NULL,
+    Identity_Id UUID,
+    Feed_Id UUID,
+    Name TEXT,
+    Auto_Complete boolean DEFAULT false ,
+    status TEXT,
+    CONSTRAINT Pk_Sync_Subscription PRIMARY KEY (Id)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.Sync_Subscription OWNER TO postgres;
