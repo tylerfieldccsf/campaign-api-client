@@ -1,19 +1,21 @@
-// Rename this file to config.json to use
+// Update example values and rename this file to config.json to use.
 {
-    "DEFAULT": {
-        "DB_NAME": "campaign-api-sync"
-    },
     "TEST": {
         "HOST": "localhost",
+        "DB_NAME": "campaign-api-sync-unit-test",
         "DB_USER": "postgres",
-        "DB_PASSWORD": "...",
-        "API_URL": "http://localhost:12061/api"
+        "DB_PASSWORD": "password123",
+        "API_URL": "http://localhost:12061/api",
+        "API_USER": "text@example.com",
+        "API_PASSWORD": "password123"
     },
     "LIVE": {
         "HOST": "localhost",
         "DB_NAME": "campaign-api-sync",
         "DB_USER": "postgres",
-        "DB_PASSWORD": "...",
-        "API_URL": "https://netfile.com/filing/api"
+        "DB_PASSWORD": "password123",
+        "API_URL": "https://netfile.com/filing/api",
+        "API_USER": "text@example.com",
+        "API_PASSWORD": "password123"
     }
 }

@@ -10,7 +10,7 @@ Campaign API Sync is a library.
 
 usage:
 
-#    >>> import requests
+#    >>> import campaign_api_client
 #    >>> r = requests.get('https://www.python.org')
 #    >>> r.status_code
 #    200
@@ -48,4 +48,20 @@ logger.setLevel(logging.DEBUG)
 
 
 def sync_filings():
+    """This will allow us to run CampaignApiClient"""
     logger.debug('Filings sync has started...')
+
+    with open('../resources/config.json', 'r') as f:
+        config = json.load(f)
+
+    env = "LIVE"
+    api_url_arg = config[env]['API_URL']
+    api_user_arg = config[env]['API_USER']
+    api_password_arg = config[env]['API_PASSWORD']
+    db_host_arg = config[env]['HOST']
+    db_name_arg = config[env]['DB_NAME']
+    db_user_arg = config[env]['DB_USER']
+    db_password_arg = config[env]['DB_PASSWORD']
+    api_client = CampaignApiClient(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg, db_user_arg,
+                                   db_password_arg)
+    api_client.main()

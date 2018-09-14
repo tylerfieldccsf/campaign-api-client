@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-from enum import Enum
-
 
 class ListQueryResult:
     def __init__(self, results, offset, has_previous_page, has_next_page, limit, total_count, empty, count, page_number):
@@ -14,16 +12,6 @@ class ListQueryResult:
         self.empty = empty
         self.count = count
         self.page_number = page_number
-
-
-class FilingActivityType(Enum):
-    New = 1
-    Attach = 2
-    Amend = 3
-    Correct = 4
-    Replace = 5
-    Reparse = 6
-    Delete = 7
 
 
 class FilingActivityV1:
@@ -65,11 +53,11 @@ class FilingActivityV1:
 class FilingElementV1:
     """
     FlilingElementV1 does blah, blah
-    :param id_arg: integer filing activity identifier
+    :param id_arg: integer filing element identifier
     :param creation_date: integer filing activity identifier
     :param activity_id: integer filing activity identifier
     :param filing_activity_type: integer filing activity identifier
-    :param filing_specification: integer filing activity identifier
+    :param filing_specification_key: integer filing activity identifier
     :param origin: integer filing activity identifier
     :param origin_filing_id: integer filing activity identifier
     :param agency_id: integer filing activity identifier
@@ -96,30 +84,6 @@ class FilingElementV1:
         self.element_specification = element_specification
         self.element_index = element_index
         self.model_json = model_json
-
-
-# class ContentLinkType(Enum):
-#     Cafs = 1
-#     PostgresLargeObject = 2
-#     Http = 3
-#     Other = 4
-#
-#
-# class ContentLink:
-#     """
-#     ContentLink does blah, blah
-#     :param name: description of arg
-#     :param media_type: description of arg
-#     :param link_type: description of arg
-#     :param address: description of arg
-#     """
-#
-#     def __init__(self, name, media_type, link_type, address):
-#         """Class constructor"""
-#         self.name = name
-#         self.media_type = media_type
-#         self.link_type = link_type
-#         self.address = address
 
 
 class SystemReport:

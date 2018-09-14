@@ -7,28 +7,26 @@ from campaign_api_repository import CampaignApiRepository
 from feed import *
 from subscription import *
 from session import *
-from models import *
+from topics import *
 
 
 class CampaignApiClient:
     """Provides support for synchronizing local database with Campaign API filing data"""
 
-    def __init__(self, base_url, db_host, db_name, db_user, db_password):
+    def __init__(self, base_url, api_user, api_password, db_host, db_name, db_user, db_password):
         self.headers = {
             "Content-type": "application/json",
-            "Accept": "application/json",
-            "Authorization": "Basic ZGV2QG5ldGZpbGUuY29tOnBhc3N3b3JkOTk="
+            "Accept": "application/json"
         }
         self.base_url = base_url
-        self.postgres_util = CampaignApiRepository(db_host, db_name, db_user, db_password)
+        self.user = api_user
+        self.password = api_password
+        self.repository = CampaignApiRepository(db_host, db_name, db_user, db_password)
 
     def fetch_system_report(self):
         url = self.base_url + Routes.SYSTEM_REPORT
-        response = requests.get(url, headers=self.headers)
-        name = response.json()['name']
-        general_status = response.json()['generalStatus']
-        components = response.json()['components']
-        system_report = SystemReport(name, general_status, components)
+        sr = self.get_http_request(url)
+        system_report = SystemReport(sr['name'], sr['generalStatus'], sr['components'])
         logging.debug('General Status: %s', system_report.general_status)
         logging.debug('General Status: %s', system_report.name)
         for component in system_report.components:
@@ -45,7 +43,7 @@ class CampaignApiClient:
             'feedId': feed_id,
             'name': name
         }
-        sub_response = self.post_http_request(url, self.headers, body)
+        sub_response = self.post_http_request(url, body)
         sub = sub_response['subscription']
         return SyncSubscription(sub['id'], sub['version'], sub['identityId'], sub['feedId'], sub['name'],
                                 sub['autoComplete'],
@@ -56,7 +54,7 @@ class CampaignApiClient:
         body = {
             'subscriptionId': subscription_id
         }
-        session_reponse = self.post_http_request(url, self.headers, body)
+        session_reponse = self.post_http_request(url, body)
         session = session_reponse['session']
         return SyncSession(session['id'], session['version'], session['subscriptionId'], session['identityId'],
                            session['autoComplete'], session['status'], session['sequenceRangeBegin'],
@@ -64,29 +62,48 @@ class CampaignApiClient:
                            session['startedAt'], session['endedAt'], session['reads'])
 
     def end_session(self, session_id):
-        pass
+        raise Exception("end_session is not yet implemented")
 
     def fetch_sync_topic(self, session_id, topic):
         url = f'{self.base_url}/{Routes.SYNC_SESSIONS}/{session_id}/{topic}'
-        response = requests.get(url, headers=self.headers)
-        qr = response.json()
+        qr = self.get_http_request(url)
         return ListQueryResult(qr['results'], qr['offset'], qr['hasPreviousPage'], qr['hasNextPage'], qr['limit'],
                                qr['totalCount'], qr['empty'], qr['count'], qr['pageNumber'])
 
+    def sync_filing_activities(self, session_id):
+        activities_qr = self.fetch_sync_topic(session_id, "activities")
+        for a in activities_qr.results:
+            activity = FilingActivityV1(a['id'], a['version'], a['creationDate'], a['lastUpdate'], a['activityType'],
+                                        a['filingSpecificationKey'], a['origin'], a['originFilingId'], a['agencyId'],
+                                        a['applyToFilingId'], a['publishSequence'])
+            self.repository.save_filing_activity(activity)
+
+    def sync_filing_elements(self, session_id):
+        elements_qr = self.fetch_sync_topic(session_id, "elements")
+        for e in elements_qr.results:
+            element = FilingElementV1(e['id'], e['creationDate'], e['activityId'], e['activityType'],
+                                      e['filingSpecificationKey'], e['origin'], e['originFilingId'],
+                                      e['agencyId'], e['applyToFilingId'], e['publishSequence'],
+                                      e['elementSpecification'], e['elementIndex'], json.dumps(e['modelJson']))
+            self.repository.save_filing_element(element)
+
     def retrieve_sync_feed(self):
         url = self.base_url + Routes.SYNC_FEED
-        response = requests.get(url, headers=self.headers)
-        feed = response.json()
+        feed = self.get_http_request(url)
         return SyncFeed(feed['id'], feed['version'], feed['productType'], feed['apiVersion'], feed['name'],
                         feed['description'], feed['status'], feed['topics'])
 
     def create_database_schema(self):
-        self.postgres_util.rebuild_schema()
+        self.repository.rebuild_schema()
 
-    def post_http_request(self, url, headers, body=None):
-        response = requests.post(url, data=json.dumps(body), headers=headers)
+    def post_http_request(self, url, body=None):
+        response = requests.post(url, auth=(self.user, self.password), data=json.dumps(body), headers=headers)
         if response.status_code not in [200, 201]:
             raise Exception(f'Error requesting Url: {url}, Response code: {response.status_code}')
+        return response.json()
+
+    def get_http_request(self, url):
+        response = requests.get(url, auth=(self.user, self.password), headers=self.headers)
         return response.json()
 
     def main(self):
@@ -108,26 +125,16 @@ class CampaignApiClient:
                 # Create SyncSession with SyncSubscription ID specified
                 sync_session = self.create_session(subscription.id)
 
-                # Read FilingActivities Topic and persist results
-                activities_qr = self.fetch_sync_topic(sync_session.id, "activities")
-                for a in activities_qr.results:
-                    activity = FilingActivityV1(a['id'], a['version'], a['creationDate'], a['lastUpdate'], a['activityType'],
-                                     a['filingSpecificationKey'], a['origin'], a['originFilingId'], a['agencyId'],
-                                     a['applyToFilingId'], a['publishSequence'])
-                    self.postgres_util.save_filing_activity(activity)
+                # Synchronize Filing Activities
+                self.sync_filing_activities(sync_session.id)
 
-                # Read FilingElements Topic and persist results
-                elements_qr = self.fetch_sync_topic(sync_session.id, "elements")
-                for e in elements_qr.results:
-                    element = FilingElementV1(e['id'], e['creationDate'], e['activityId'], e['activityType'],
-                                              e['filingSpecificationKey'], e['origin'], e['originFilingId'],
-                                              e['agencyId'], e['applyToFilingId'], e['publishSequence'],
-                                              e['elementSpecification'], e['elementIndex'], json.dumps(e['modelJson']))
-                    self.postgres_util.save_filing_element(element)
+                # Synchronize Filing Elements
+                self.sync_filing_elements(sync_session.id)
+
             else:
                 logging.info("The Campaign API system status is %s and is not Ready", sys_report.general_status)
         except Exception as ex:
-            logging.info("The Campaign API system is not Ready. Error message is: ", ex)
+            logging.info("Error running CampaignApiClient: ", ex)
 
 
 class Routes:
@@ -153,8 +160,10 @@ if __name__ == '__main__':
 
     env = "DEV"
     api_url_arg = config[env]['API_URL']
+    api_user_arg = config[env]['API_USER']
+    api_password_arg = config[env]['API_PASSWORD']
     db_host_arg = config[env]['HOST']
     db_name_arg = config[env]['DB_NAME']
     db_user_arg = config[env]['DB_USER']
     db_password_arg = config[env]['DB_PASSWORD']
-    CampaignApiClient(api_url_arg, db_host_arg, db_name_arg, db_user_arg, db_password_arg).main()
+    CampaignApiClient(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg, db_user_arg, db_password_arg).main()

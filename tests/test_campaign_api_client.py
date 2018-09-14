@@ -11,15 +11,15 @@ class TestCampaignApiClient(unittest.TestCase):
         with open('../resources/config.json', 'r') as f:
             config = json.load(f)
 
-        api_url = config['TEST']['API_URL']
-        db_host = config['TEST']['HOST']
-        db_name = config['TEST']['DB_NAME']
-        db_user = config['TEST']['DB_USER']
-        db_password = config['TEST']['DB_PASSWORD']
-        self.api_client = CampaignApiClient(api_url, db_host, db_name, db_user, db_password)
-
-    def test01(self):
-        campaign_api_client.sync_filings()
+        env = "TEST"
+        api_url = config[env]['API_URL']
+        api_user = config[env]['API_USER']
+        api_password = config[env]['API_PASSWORD']
+        db_host = config[env]['HOST']
+        db_name = config[env]['DB_NAME']
+        db_user = config[env]['DB_USER']
+        db_password = config[env]['DB_PASSWORD']
+        self.api_client = CampaignApiClient(api_url, api_user, api_password, db_host, db_name, db_user, db_password)
 
     def test02_system_report(self):
         logging.info("Running System Report Test...")

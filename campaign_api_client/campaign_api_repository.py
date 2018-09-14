@@ -2,7 +2,7 @@
 import os
 import psycopg2
 import logging
-from models import *
+from topics import *
 
 
 class CampaignApiRepository:

@@ -1,13 +1,13 @@
 import uuid
 from datetime import datetime
-from models import *
+from topics import *
 
 # Assign variables for FilingActivity and FilingElement
 id_arg = uuid.uuid4()
 version = 0
 creation_date = datetime.now()
 last_update = datetime.now()
-filing_activity_type = FilingActivityType.New.name
+filing_activity_type = "New"
 filing_specification_key = "filing:specification:key"
 origin = "I come from the land down under"
 origin_filing_id = "filing_101"
