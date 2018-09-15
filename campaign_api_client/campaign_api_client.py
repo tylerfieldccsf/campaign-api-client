@@ -10,6 +10,16 @@ from session import *
 from topics import *
 
 
+class Routes:
+    SYSTEM_REPORT = "/system"
+    SYNC = "/v1/sync"
+    SYNC_FEED = "/v1/sync/feed"
+    SYNC_SUBSCRIPTIONS = "/v1/sync/subscriptions"
+    SYNC_SESSIONS = "/v1/sync/sessions"
+    SYNC_SESSION_COMMAND = "/v1/sync/sessions/%s/commands/%s"
+    SYNC_SUBSCRIPTION_COMMAND = "/v1/sync/subscriptions/%s/commands/%s"
+
+
 class CampaignApiClient:
     """Provides support for synchronizing local database with Campaign API filing data"""
 
@@ -48,42 +58,74 @@ class CampaignApiClient:
         return SyncSubscription(sub['id'], sub['version'], sub['identityId'], sub['feedId'], sub['name'],
                                 sub['autoComplete'], sub['status'])
 
+    def execute_subscription_command(self, subscription_id, subscription_version, subscription_command_type):
+        ext = Routes.SYNC_SUBSCRIPTION_COMMAND % (subscription_id, subscription_command_type)
+        url = self.base_url + ext
+        body = {
+            'id': subscription_id,
+            'version': subscription_version
+        }
+        self.post_http_request(url, body)
+
     def create_session(self, subscription_id):
         url = self.base_url + Routes.SYNC_SESSIONS
         body = {
             'subscriptionId': subscription_id
         }
-        session_reponse = self.post_http_request(url, body)
-        session = session_reponse['session']
+        session_response = self.post_http_request(url, body)
+        session = session_response['session']
         return SyncSession(session['id'], session['version'], session['subscriptionId'], session['identityId'],
                            session['autoComplete'], session['status'], session['sequenceRangeBegin'],
                            session['sequenceRangeEnd'], session['dateRangeBegin'], session['dateRangeEnd'],
                            session['startedAt'], session['endedAt'], session['reads'])
 
-    def end_session(self, session_id):
-        raise Exception("end_session is not yet implemented")
+    def execute_session_command(self, session_id, session_version, session_command_type):
+        ext = Routes.SYNC_SESSION_COMMAND % (session_id, session_command_type)
+        url = self.base_url + ext
+        body = {
+            'id': session_id,
+            'version': session_version
+        }
+        self.post_http_request(url, body)
 
-    def fetch_sync_topic(self, session_id, topic):
+    def fetch_sync_topic(self, session_id, topic, limit=1000, offset=0):
+        params = {'limit': limit, 'offset': offset}
         url = f'{self.base_url}/{Routes.SYNC_SESSIONS}/{session_id}/{topic}'
-        qr = self.get_http_request(url)
+        qr = self.get_http_request(url, params)
         return ListQueryResult(qr['results'], qr['offset'], qr['hasPreviousPage'], qr['hasNextPage'], qr['limit'],
                                qr['totalCount'], qr['empty'], qr['count'], qr['pageNumber'])
 
     def sync_filing_activities(self, session_id):
-        activities_qr = self.fetch_sync_topic(session_id, "activities")
-        for a in activities_qr.results:
+        limit, offset = 10, 0
+        activities_qr = self.fetch_sync_topic(session_id, "activities", limit, offset)
+        self.save_filing_activities(activities_qr.results)
+        while activities_qr.hasNextPage:
+            offset = offset + limit
+            activities_qr = self.fetch_sync_topic(session_id, "activities", limit, offset)
+            self.save_filing_activities(activities_qr.results)
+
+    def save_filing_activities(self, filing_activities):
+        for a in filing_activities:
             activity = FilingActivityV1(a['id'], a['version'], a['creationDate'], a['lastUpdate'], a['activityType'],
-                                        a['filingSpecificationKey'], a['origin'], a['originFilingId'], a['agencyId'],
+                                        a['specificationKey'], a['origin'], a['originFilingId'], a['agencyId'],
                                         a['applyToFilingId'], a['publishSequence'])
             self.repository.save_filing_activity(activity)
 
     def sync_filing_elements(self, session_id):
-        elements_qr = self.fetch_sync_topic(session_id, "elements")
-        for e in elements_qr.results:
+        limit, offset = 10, 0
+        elements_qr = self.fetch_sync_topic(session_id, "elements", limit, offset)
+        self.save_filing_elements(elements_qr.results)
+        while elements_qr.hasNextPage:
+            offset = offset + limit
+            elements_qr = self.fetch_sync_topic(session_id, "elements", limit, offset)
+            self.save_filing_elements(elements_qr.results)
+
+    def save_filing_elements(self, filing_elements):
+        for e in filing_elements:
             element = FilingElementV1(e['id'], e['creationDate'], e['activityId'], e['activityType'],
-                                      e['filingSpecificationKey'], e['origin'], e['originFilingId'],
+                                      e['specificationKey'], e['origin'], e['originFilingId'],
                                       e['agencyId'], e['applyToFilingId'], e['publishSequence'],
-                                      e['elementSpecification'], e['elementIndex'], json.dumps(e['modelJson']))
+                                      e['elementType'], e['elementIndex'], json.dumps(e['modelJson']))
             self.repository.save_filing_element(element)
 
     def retrieve_sync_feed(self):
@@ -96,13 +138,15 @@ class CampaignApiClient:
         self.repository.rebuild_schema()
 
     def post_http_request(self, url, body=None):
-        response = requests.post(url, auth=(self.user, self.password), data=json.dumps(body), headers=headers)
+        response = requests.post(url, auth=(self.user, self.password), data=json.dumps(body), headers=self.headers)
         if response.status_code not in [200, 201]:
             raise Exception(f'Error requesting Url: {url}, Response code: {response.status_code}')
         return response.json()
 
-    def get_http_request(self, url):
-        response = requests.get(url, auth=(self.user, self.password), headers=self.headers)
+    def get_http_request(self, url, params=None):
+        response = requests.get(url, params=params, auth=(self.user, self.password), headers=self.headers)
+        if response.status_code not in [200, 201]:
+            raise Exception(f'Error requesting Url: {url}, Response code: {response.status_code}')
         return response.json()
 
     def main(self):
@@ -130,18 +174,18 @@ class CampaignApiClient:
                 # Synchronize Filing Elements
                 self.sync_filing_elements(sync_session.id)
 
+                # Complete SyncSession
+                self.execute_session_command(sync_session.id, sync_session.version,SyncSessionCommandType.Complete.name)
+
+                # Cancel the subscription
+                self.execute_subscription_command(subscription.id, subscription.version, SyncSubscriptionCommandType.Cancel.name)
             else:
                 logging.info("The Campaign API system status is %s and is not Ready", sys_report.general_status)
         except Exception as ex:
+            # Cancel Session on error
+            if sync_session is not None:
+                self.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Cancel.name)
             logging.info("Error running CampaignApiClient: ", ex)
-
-
-class Routes:
-    SYSTEM_REPORT = "/system"
-    SYNC = "/v1/sync"
-    SYNC_FEED = "/v1/sync/feed"
-    SYNC_SUBSCRIPTIONS = "/v1/sync/subscriptions"
-    SYNC_SESSIONS = "/v1/sync/sessions"
 
 
 if __name__ == '__main__':
@@ -165,4 +209,5 @@ if __name__ == '__main__':
     db_name_arg = config[env]['DB_NAME']
     db_user_arg = config[env]['DB_USER']
     db_password_arg = config[env]['DB_PASSWORD']
-    CampaignApiClient(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg, db_user_arg, db_password_arg).main()
+    CampaignApiClient(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg, db_user_arg,
+                      db_password_arg).main()
