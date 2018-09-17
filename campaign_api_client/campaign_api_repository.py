@@ -60,20 +60,22 @@ class CampaignApiRepository:
             found_activity = self.fetch_filing_activity(activity.id)
             if found_activity is None:
                 # Insert new Filing Activity
-                cursor.execute("""INSERT INTO filing_activity (id, version, creation_date, last_update, activity_type,
-                filing_specification_key, origin, origin_filing_id, apply_to_filing_id, publish_sequence)
-                VALUES (%s, %s, %s, %s,%s, %s,%s, %s,%s, %s)""",
-                               (activity.id, activity.version, activity.creation_date, activity.last_update,
-                                activity.filing_activity_type, activity.filing_specification_key, activity.origin,
-                                activity.origin_filing_id, activity.apply_to_filing_id, activity.publish_sequence))
+                cursor.execute("""INSERT INTO filing_activity (id, version, api_version, creation_date, last_update, 
+                activity_type, specification_key, origin, filing_id, aid, apply_to_filing_id, publish_sequence)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                               (activity.id, activity.version, activity.api_version, activity.creation_date,
+                                activity.last_update, activity.activity_type, activity.specification_key,
+                                activity.origin, activity.filing_id, activity.aid, activity.apply_to_filing_id,
+                                activity.publish_sequence))
             else:
                 # Update existing Filing Activity
                 cursor.execute("""UPDATE filing_activity SET version=%s, creation_date=%s, last_update=%s, activity_type=%s,
-                                filing_specification_key=%s, origin=%s, origin_filing_id=%s, apply_to_filing_id=%s, publish_sequence=%s
+                                specification_key=%s, origin=%s, filing_id=%s, aid=%s, apply_to_filing_id=%s, publish_sequence=%s
                                 where id=%s""",
                                (activity.version, activity.creation_date, activity.last_update,
-                                activity.filing_activity_type, activity.filing_specification_key, activity.origin,
-                                activity.origin_filing_id, activity.apply_to_filing_id, activity.publish_sequence, activity.id))
+                                activity.activity_type, activity.specification_key, activity.origin,
+                                activity.filing_id, activity.aid, activity.apply_to_filing_id,
+                                activity.publish_sequence, activity.id))
             self.conn.commit()
             cursor.close()
         except Exception as ex:
@@ -88,51 +90,53 @@ class CampaignApiRepository:
             a = cursor.fetchone()
             self.conn.commit()
             cursor.close()
-            return a if a is None else FilingActivityV1(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10])
+            return a if a is None else FilingActivityV1(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9],
+                                                        a[10], a[11])
         except Exception as ex:
             logging.error(ex)
             self.conn.rollback()
 
-    def save_filing_element(self, element):
+    def save_filing_activity_element(self, element):
         logging.debug("Saving Filing Element")
         try:
             cursor = self.conn.cursor()
-            found_element = self.fetch_filing_element(element.id)
+            found_element = self.fetch_filing_activity_element(element.id)
             if found_element is None:
                 # Insert new Filing Element
-                cursor.execute("""INSERT INTO filing_element (id, creation_date, activity_id, activity_type, element_specification, 
-                origin, origin_filing_id, agency_id, apply_to_filing_id, publish_sequence, element_index, model_json, filing_specification) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                               (element.id, element.creation_date, element.activity_id, element.filing_activity_type,
-                                element.element_specification, element.origin, element.origin_filing_id, element.agency_id,
+                cursor.execute("""INSERT INTO filing_activity_element (id, api_version, creation_date, activity_id, activity_type, 
+                element_type, origin, origin_filing_id, agency_id, apply_to_filing_id, publish_sequence, element_index, 
+                model_json, specification_key) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                               (element.id, element.api_version, element.creation_date, element.activity_id, element.activity_type,
+                                element.element_type, element.origin, element.origin_filing_id, element.agency_id,
                                 element.apply_to_filing_id, element.publish_sequence, element.element_index,
-                                element.model_json, element.filing_specification_key))
+                                element.model_json, element.specification_key))
             else:
                 # Update existing Riling Element
-                cursor.execute("""UPDATE filing_element SET creation_date=%s, activity_id=%s,
+                cursor.execute("""UPDATE filing_activity_element SET api_version=%s, creation_date=%s, activity_id=%s,
                  activity_type=%s, element_specification=%s, origin=%s, origin_filing_id=%s, agency_id=%s, 
                  apply_to_filing_id=%s, publish_sequence=%s, element_index=%s, model_json=%s, filing_specification=%s
                  where id=%s""",
-                               (element.creation_date, element.activity_id, element.filing_activity_type,
-                                element.element_specification, element.origin, element.origin_filing_id,
-                                element.agency_id,
-                                element.apply_to_filing_id, element.publish_sequence, element.element_index,
-                                element.model_json, element.filing_specification_key, element.id))
+                               (element.api_version, element.creation_date, element.activity_id, element.activity_type,
+                                element.element_type, element.origin, element.origin_filing_id,
+                                element.agency_id, element.apply_to_filing_id, element.publish_sequence,
+                                element.element_index, element.model_json, element.filing_specification_key, element.id))
             self.conn.commit()
             cursor.close()
         except Exception as ex:
             logging.error(ex)
             self.conn.rollback()
 
-    def fetch_filing_element(self, element_id):
+    def fetch_filing_activity_element(self, element_id):
         logging.debug("Fetching Filing Element")
         try:
             cursor = self.conn.cursor()
-            cursor.execute("SELECT * FROM filing_element WHERE id=%s", (str(element_id),))
+            cursor.execute("SELECT * FROM filing_activity_element WHERE id=%s", (str(element_id),))
             a = cursor.fetchone()
             # self.conn.commit()
             cursor.close()
-            return a if a is None else FilingElementV1(a[0], a[1], a[2], a[3], a[12], a[5], a[6], a[7], a[8], a[9], a[4], a[10], a[11])
+            return a if a is None else FilingActivityElementV1(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
+                                                               a[9], a[4], a[10], a[11], a[12])
         except Exception as ex:
             logging.error(ex)
             self.conn.rollback()

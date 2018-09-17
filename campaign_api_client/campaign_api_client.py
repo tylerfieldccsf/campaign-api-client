@@ -106,27 +106,27 @@ class CampaignApiClient:
 
     def save_filing_activities(self, filing_activities):
         for a in filing_activities:
-            activity = FilingActivityV1(a['id'], a['version'], a['creationDate'], a['lastUpdate'], a['activityType'],
-                                        a['specificationKey'], a['origin'], a['originFilingId'], a['agencyId'],
-                                        a['applyToFilingId'], a['publishSequence'])
+            activity = FilingActivityV1(a['id'], a['version'], a['apiVersion'], a['creationDate'], a['lastUpdate'],
+                                        a['activityType'], a['specificationKey'], a['origin'], a['filingId'],
+                                        a['aid'], a['applyToFilingId'], a['publishSequence'])
             self.repository.save_filing_activity(activity)
 
-    def sync_filing_elements(self, session_id):
+    def sync_filing_activity_elements(self, session_id):
         limit, offset = 10, 0
-        elements_qr = self.fetch_sync_topic(session_id, "elements", limit, offset)
-        self.save_filing_elements(elements_qr.results)
+        elements_qr = self.fetch_sync_topic(session_id, "activity-elements", limit, offset)
+        self.save_filing_activity_elements(elements_qr.results)
         while elements_qr.hasNextPage:
             offset = offset + limit
-            elements_qr = self.fetch_sync_topic(session_id, "elements", limit, offset)
-            self.save_filing_elements(elements_qr.results)
+            elements_qr = self.fetch_sync_topic(session_id, "activity-elements", limit, offset)
+            self.save_filing_activity_elements(elements_qr.results)
 
-    def save_filing_elements(self, filing_elements):
+    def save_filing_activity_elements(self, filing_elements):
         for e in filing_elements:
-            element = FilingElementV1(e['id'], e['creationDate'], e['activityId'], e['activityType'],
-                                      e['specificationKey'], e['origin'], e['originFilingId'],
-                                      e['agencyId'], e['applyToFilingId'], e['publishSequence'],
-                                      e['elementType'], e['elementIndex'], json.dumps(e['modelJson']))
-            self.repository.save_filing_element(element)
+            element = FilingActivityElementV1(e['id'], e['apiVersion'], e['creationDate'], e['activityId'], e['activityType'],
+                                              e['specificationKey'], e['origin'], e['originFilingId'],
+                                              e['agencyId'], e['applyToFilingId'], e['publishSequence'],
+                                              e['elementType'], e['elementIndex'], json.dumps(e['modelJson']))
+            self.repository.save_filing_activity_element(element)
 
     def retrieve_sync_feed(self):
         url = self.base_url + Routes.SYNC_FEED
@@ -172,7 +172,7 @@ class CampaignApiClient:
                 self.sync_filing_activities(sync_session.id)
 
                 # Synchronize Filing Elements
-                self.sync_filing_elements(sync_session.id)
+                self.sync_filing_activity_elements(sync_session.id)
 
                 # Complete SyncSession
                 self.execute_session_command(sync_session.id, sync_session.version,SyncSessionCommandType.Complete.name)
