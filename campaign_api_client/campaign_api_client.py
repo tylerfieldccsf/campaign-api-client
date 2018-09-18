@@ -13,12 +13,14 @@ from topics import *
 
 class Routes:
     SYSTEM_REPORT = "/system"
-    SYNC = "/v1/sync"
-    SYNC_FEED = "/v1/sync/feed"
-    SYNC_SUBSCRIPTIONS = "/v1/sync/subscriptions"
-    SYNC_SESSIONS = "/v1/sync/sessions"
-    SYNC_SESSION_COMMAND = "/v1/sync/sessions/%s/commands/%s"
-    SYNC_SUBSCRIPTION_COMMAND = "/v1/sync/subscriptions/%s/commands/%s"
+    # SYNC = "/activity/v101/sync"
+    SYNC_FEED = "/activity/v101/sync/feed"
+    SYNC_SUBSCRIPTIONS = "/activity/v101/sync/subscriptions"
+    SYNC_SESSIONS = "/activity/v101/sync/sessions"
+
+    # First parameter is Session ID. Second parameter is Command Type
+    SYNC_SESSION_COMMAND = "/activity/v101/sync/sessions/%s/commands/%s"
+    SYNC_SUBSCRIPTION_COMMAND = "/activity/v101/sync/subscriptions/%s/commands/%s"
 
 
 class CampaignApiClient:
@@ -55,21 +57,21 @@ class CampaignApiClient:
             'name': subscription_name
         }
         sub_response = self.post_http_request(url, body)
-        sub = sub_response['subscription']
-        sync_sub = SyncSubscription(sub['id'], sub['version'], sub['identityId'], sub['feedId'], sub['name'],
-                                sub['autoComplete'], sub['status'])
+        # sub = sub_response['subscription']
+        # sync_sub = SyncSubscription(sub['id'], sub['version'], sub['identityId'], sub['feedId'], sub['name'],
+        #                         sub['autoComplete'], sub['status'])
+        #
+        # self.repository.save_sync_subscription(sync_sub)
+        return sub_response
 
-        self.repository.save_sync_subscription(sync_sub)
-        return sync_sub
-
-    def execute_subscription_command(self, subscription_id, subscription_version, subscription_command_type):
-        ext = Routes.SYNC_SUBSCRIPTION_COMMAND % (subscription_id, subscription_command_type)
+    def execute_subscription_command(self, sub_id, subscription_version, subscription_command_type):
+        ext = Routes.SYNC_SUBSCRIPTION_COMMAND % (sub_id, subscription_command_type)
         url = self.base_url + ext
         body = {
-            'id': subscription_id,
+            'id': sub_id,
             'version': subscription_version
         }
-        self.post_http_request(url, body)
+        return self.post_http_request(url, body)
 
     def get_subscriptions(self, feed_id):
         # params = {'limit': limit, 'offset': offset}
@@ -83,26 +85,25 @@ class CampaignApiClient:
         self.repository.save_sync_subscription(sync_sub)
         return sync_sub
 
-    def create_session(self, subscription_id):
+    def create_session(self, sub_id):
         url = self.base_url + Routes.SYNC_SESSIONS
         body = {
-            'subscriptionId': subscription_id
+            'subscriptionId': sub_id
         }
         session_response = self.post_http_request(url, body)
-        session = session_response['session']
-        return SyncSession(session['id'], session['version'], session['subscriptionId'], session['identityId'],
-                           session['autoComplete'], session['status'], session['sequenceRangeBegin'],
-                           session['sequenceRangeEnd'], session['dateRangeBegin'], session['dateRangeEnd'],
-                           session['startedAt'], session['endedAt'], session['reads'])
+        # session = session_response['session']
+        # return SyncSession(session['id'], session['version'], session['subscriptionId'], session['identityId'],
+        #                    session['autoComplete'], session['status'], session['sequenceRangeBegin'],
+        #                    session['sequenceRangeEnd'], session['dateRangeBegin'], session['dateRangeEnd'],
+        #                    session['startedAt'], session['endedAt'], session['reads'])
+        return session_response
 
     def execute_session_command(self, session_id, session_version, session_command_type):
-        ext = Routes.SYNC_SESSION_COMMAND % (session_id, session_command_type)
-        url = self.base_url + ext
+        url = self.base_url + Routes.SYNC_SESSION_COMMAND % (session_id, session_command_type)
         body = {
-            'id': session_id,
             'version': session_version
         }
-        self.post_http_request(url, body)
+        return self.post_http_request(url, body)
 
     def fetch_sync_topic(self, session_id, topic, limit=1000, offset=0):
         params = {'limit': limit, 'offset': offset}
@@ -159,13 +160,13 @@ class CampaignApiClient:
     def post_http_request(self, url, body=None):
         response = requests.post(url, auth=(self.user, self.password), data=json.dumps(body), headers=self.headers)
         if response.status_code not in [200, 201]:
-            raise Exception(f'Error requesting Url: {url}, Response code: {response.status_code}')
+            raise Exception(f'Error requesting Url: {url}, Response code: {response.status_code}. Error Message: {response.text}')
         return response.json()
 
     def get_http_request(self, url, params=None):
         response = requests.get(url, params=params, auth=(self.user, self.password), headers=self.headers)
         if response.status_code not in [200, 201]:
-            raise Exception(f'Error requesting Url: {url}, Response code: {response.status_code}')
+            raise Exception(f'Error requesting Url: {url}, Response code: {response.status_code}. Error Message: {response.text}')
         return response.json()
 
     def show_usage(self):
@@ -181,35 +182,10 @@ class CampaignApiClient:
             self.show_usage()
 
     def get_feed(self):
-        feed = self.retrieve_sync_feed()
-        output = f'Feed Id: {feed.id}, Feed Name: {feed.name}, Topics: '
-        for topic in feed.topics:
-            output += f'Topic Name: {topic.name} Description: {topic.description}, '
-        print(output)
+        return self.retrieve_sync_feed()
 
     def execute_list_subscriptions(self):
-        subs = self.repository.fetch_active_subscriptions()
-
-        # Display subscription information
-        output = f'Subscription Info:\n'
-        for sub in subs:
-            output += f'Subscription Name: {sub.name}, ID: {sub.id}, Version: {sub.version}\n'
-        print(output)
-
-    def execute_subscription_operation(self, command, arg_1, arg_2):
-        if command == 'cancel':
-            subscription_id = arg_1
-            subscription_version = arg_2
-            self.execute_subscription_command(subscription_id, subscription_version, SyncSubscriptionCommandType.Cancel.name)
-        elif command == 'create':
-            feed_name = arg_1
-            subscription_name = arg_2
-            self.create_subscription(feed_name, subscription_name)
-        else:
-            self.show_usage()
-
-    def execute_session_operations(self, command):
-        pass
+        return self.repository.fetch_active_subscriptions()
 
     def main(self):
         try:
@@ -245,7 +221,8 @@ class CampaignApiClient:
                 self.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Complete.name)
 
                 # Cancel the subscription
-                self.execute_subscription_command(subscription.id, subscription.version, SyncSubscriptionCommandType.Cancel.name)
+                resp = self.execute_subscription_command(subscription.id, subscription.version, SyncSubscriptionCommandType.Cancel.name)
+                print(resp)
             else:
                 logging.info("The Campaign API system status is %s and is not Ready", sys_report.general_status)
         except Exception as ex:
@@ -295,16 +272,53 @@ if __name__ == '__main__':
         campaign_api_client.execute_db_operations(args[2])
     elif args[1] == 'feed':
         # User can retrieve feed information
-        campaign_api_client.get_feed()
+        feed = campaign_api_client.get_feed()
+        output = f'Feed Id: {feed.id}, Feed Name: {feed.name}, Topics: '
+        for topic in feed.topics:
+            output += f'Topic Name: {topic.name} Description: {topic.description}, '
+        print(output)
     elif args[1] == 'subscription':
         # User can Create, Cancel, or List available subscriptions
         if(args[2]) == 'list':
-            campaign_api_client.execute_list_subscriptions()
+            subs = campaign_api_client.execute_list_subscriptions()
+            # Display subscription information
+            output = f'Subscription Info:\n'
+            for sub in subs:
+                output += f'Subscription Name: {sub.name}, ID: {sub.id}, Version: {sub.version}\n'
+            print(output)
         else:
-            if args[2] == 'create' or 'cancel':
-                campaign_api_client.execute_subscription_operation(args[2], args[3], args[4])
+            if args[2] == 'create':
+                feed_name = args[3]
+                subscription_name = args[4]
+                response = campaign_api_client.create_subscription(feed_name, subscription_name)
+                print(response)
+            elif args[2] == 'cancel':
+                subscription_id = args[2]
+                version = args[3]
+                response = campaign_api_client.execute_subscription_command(subscription_id, version, SyncSubscriptionCommandType.Cancel.name)
+                print(response)
     elif args[1] == 'session':
-        campaign_api_client.execute_session_operations([2])
+        if args[2] == 'create':
+            subscription_id = args[3]
+            sync_session = campaign_api_client.create_session(subscription_id)
+            print(sync_session)
+        elif args[2] == 'cancel':
+            session_id = args[3]
+            version = args[4]
+            response = campaign_api_client.execute_session_command(session_id, version, SyncSessionCommandType.Cancel.name)
+            print(response)
+        elif args[2] == 'complete':
+            session_id = args[3]
+            version = args[4]
+            response = campaign_api_client.execute_session_command(session_id, version, SyncSessionCommandType.Complete.name)
+            print(response)
+    elif args[1] == 'topic':
+        session_id = args[2]
+        topic_name = args[3]
+        if topic_name == "activities":
+            campaign_api_client.sync_filing_activities(session_id)
+        elif topic_name == "activity-elements":
+            campaign_api_client.sync_filing_activity_elements(session_id)
     else:
         campaign_api_client.show_usage()
 
