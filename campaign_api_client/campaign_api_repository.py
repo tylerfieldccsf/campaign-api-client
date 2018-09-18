@@ -114,13 +114,13 @@ class CampaignApiRepository:
             else:
                 # Update existing Riling Element
                 cursor.execute("""UPDATE filing_activity_element SET api_version=%s, creation_date=%s, activity_id=%s,
-                 activity_type=%s, element_specification=%s, origin=%s, origin_filing_id=%s, agency_id=%s, 
-                 apply_to_filing_id=%s, publish_sequence=%s, element_index=%s, model_json=%s, filing_specification=%s
+                 activity_type=%s, specification_key=%s, origin=%s, origin_filing_id=%s, agency_id=%s, 
+                 apply_to_filing_id=%s, publish_sequence=%s, element_type=%s, model_json=%s, element_index=%s
                  where id=%s""",
                                (element.api_version, element.creation_date, element.activity_id, element.activity_type,
-                                element.element_type, element.origin, element.origin_filing_id,
+                                element.specification_key, element.origin, element.origin_filing_id,
                                 element.agency_id, element.apply_to_filing_id, element.publish_sequence,
-                                element.element_index, element.model_json, element.filing_specification_key, element.id))
+                                element.element_type, element.model_json, element.element_index, element.id))
             self.conn.commit()
             cursor.close()
         except Exception as ex:
@@ -174,8 +174,8 @@ class CampaignApiRepository:
         logging.debug("Fetching Active Subscriptions")
         try:
             cursor = self.conn.cursor()
-            cursor.execute("SELECT * FROM sync_subscription WHERE status='active'")
-            subs = cursor.fetchmany()
+            cursor.execute("SELECT * FROM sync_subscription WHERE status='Active'")
+            subs = cursor.fetchall()
             self.conn.commit()
             cursor.close()
             # return s if s is None else SyncSubscription(s[0], s[1], s[2], s[3], s[4], s[5], s[6], None)

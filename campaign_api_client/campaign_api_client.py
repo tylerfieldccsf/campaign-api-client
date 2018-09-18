@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import sys
 import requests
 import logging
 import json
@@ -47,16 +48,19 @@ class CampaignApiClient:
             logging.debug('\tComponent Build Version: %s', component.build_version)
         return system_report
 
-    def create_subscription(self, feed_id, name):
+    def create_subscription(self, feed_name, subscription_name):
         url = self.base_url + Routes.SYNC_SUBSCRIPTIONS
         body = {
-            'feedId': feed_id,
-            'name': name
+            'feedName': feed_name,
+            'name': subscription_name
         }
         sub_response = self.post_http_request(url, body)
         sub = sub_response['subscription']
-        return SyncSubscription(sub['id'], sub['version'], sub['identityId'], sub['feedId'], sub['name'],
+        sync_sub = SyncSubscription(sub['id'], sub['version'], sub['identityId'], sub['feedId'], sub['name'],
                                 sub['autoComplete'], sub['status'])
+
+        self.repository.save_sync_subscription(sync_sub)
+        return sync_sub
 
     def execute_subscription_command(self, subscription_id, subscription_version, subscription_command_type):
         ext = Routes.SYNC_SUBSCRIPTION_COMMAND % (subscription_id, subscription_command_type)
@@ -66,6 +70,18 @@ class CampaignApiClient:
             'version': subscription_version
         }
         self.post_http_request(url, body)
+
+    def get_subscriptions(self, feed_id):
+        # params = {'limit': limit, 'offset': offset}
+        params = {'feedId': feed_id, 'status': 'Active'}
+        url = self.base_url + Routes.SYNC_SUBSCRIPTIONS
+        sub_response = self.get_http_request(url, params)
+        sub = sub_response['subscription']
+        sync_sub = SyncSubscription(sub['id'], sub['version'], sub['identityId'], sub['feedId'], sub['name'],
+                                sub['autoComplete'], sub['status'])
+
+        self.repository.save_sync_subscription(sync_sub)
+        return sync_sub
 
     def create_session(self, subscription_id):
         url = self.base_url + Routes.SYNC_SESSIONS
@@ -135,6 +151,9 @@ class CampaignApiClient:
                         feed['description'], feed['status'], feed['topics'])
 
     def create_database_schema(self):
+        self.repository.execute_sql_scripts()
+
+    def rebuild_database_schema(self):
         self.repository.rebuild_schema()
 
     def post_http_request(self, url, body=None):
@@ -149,10 +168,55 @@ class CampaignApiClient:
             raise Exception(f'Error requesting Url: {url}, Response code: {response.status_code}')
         return response.json()
 
+    def show_usage(self):
+        print("Usage: blah blah")
+        sys.exit(0)
+
+    def execute_db_operations(self, command):
+        if command == 'create':
+            self.create_database_schema()
+        elif command == 'rebuild':
+            self.rebuild_database_schema()
+        else:
+            self.show_usage()
+
+    def get_feed(self):
+        feed = self.retrieve_sync_feed()
+        output = f'Feed Id: {feed.id}, Feed Name: {feed.name}, Topics: '
+        for topic in feed.topics:
+            output += f'Topic Name: {topic.name} Description: {topic.description}, '
+        print(output)
+
+    def execute_list_subscriptions(self):
+        subs = self.repository.fetch_active_subscriptions()
+
+        # Display subscription information
+        output = f'Subscription Info:\n'
+        for sub in subs:
+            output += f'Subscription Name: {sub.name}, ID: {sub.id}, Version: {sub.version}\n'
+        print(output)
+
+    def execute_subscription_operation(self, command, arg_1, arg_2):
+        if command == 'cancel':
+            subscription_id = arg_1
+            subscription_version = arg_2
+            self.execute_subscription_command(subscription_id, subscription_version, SyncSubscriptionCommandType.Cancel.name)
+        elif command == 'create':
+            feed_name = arg_1
+            subscription_name = arg_2
+            self.create_subscription(feed_name, subscription_name)
+        else:
+            self.show_usage()
+
+    def execute_session_operations(self, command):
+        pass
+
     def main(self):
         try:
             # Build SQL DB
-            self.create_database_schema()
+            # self.rebuild_database_schema()
+
+            sync_session = None
 
             # Verify the system is ready
             sys_report = self.fetch_system_report()
@@ -163,7 +227,10 @@ class CampaignApiClient:
                 feed = self.retrieve_sync_feed()
 
                 # Create SyncSubscription or use existing SyncSubscription with feed specified
-                subscription = self.create_subscription(feed.id, "Feed_1")
+                subscription = self.create_subscription(feed.name, "My Campaign API Feed")
+
+                # Get the current subscriptions
+                # subscriptions = self.get_subscriptions(feed.id)
 
                 # Create SyncSession
                 sync_session = self.create_session(subscription.id)
@@ -175,7 +242,7 @@ class CampaignApiClient:
                 self.sync_filing_activity_elements(sync_session.id)
 
                 # Complete SyncSession
-                self.execute_session_command(sync_session.id, sync_session.version,SyncSessionCommandType.Complete.name)
+                self.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Complete.name)
 
                 # Cancel the subscription
                 self.execute_subscription_command(subscription.id, subscription.version, SyncSubscriptionCommandType.Cancel.name)
@@ -196,7 +263,7 @@ if __name__ == '__main__':
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
     logger.addHandler(file_handler)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     with open('../resources/config.json', 'r') as f:
         config = json.load(f)
@@ -209,5 +276,36 @@ if __name__ == '__main__':
     db_name_arg = config[env]['DB_NAME']
     db_user_arg = config[env]['DB_USER']
     db_password_arg = config[env]['DB_PASSWORD']
-    CampaignApiClient(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg, db_user_arg,
-                      db_password_arg).main()
+
+    # CampaignApiClient(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg, db_user_arg,
+    #                   db_password_arg).main()
+
+    campaign_api_client = CampaignApiClient(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg, db_user_arg,
+                                            db_password_arg)
+
+    # Get Command line args
+    args = sys.argv
+    # logging.info(args)
+
+    if len(args) < 2:
+        campaign_api_client.show_usage()
+        sys.exit(0)
+
+    if args[1] == 'db':
+        campaign_api_client.execute_db_operations(args[2])
+    elif args[1] == 'feed':
+        # User can retrieve feed information
+        campaign_api_client.get_feed()
+    elif args[1] == 'subscription':
+        # User can Create, Cancel, or List available subscriptions
+        if(args[2]) == 'list':
+            campaign_api_client.execute_list_subscriptions()
+        else:
+            if args[2] == 'create' or 'cancel':
+                campaign_api_client.execute_subscription_operation(args[2], args[3], args[4])
+    elif args[1] == 'session':
+        campaign_api_client.execute_session_operations([2])
+    else:
+        campaign_api_client.show_usage()
+
+    sys.exit(0)
