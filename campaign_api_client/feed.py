@@ -25,6 +25,12 @@ class SyncFeed:
         for topic in topics:
             self.topics.append(SyncTopic(topic['name'], topic['description']))
 
+    def __str__(self):
+        output = f'Feed Id: {self.id}, Feed Name: {self.name}, Topics: '
+        for topic in self.topics:
+            output += f'\n\tTopic Name: {topic.name} Description: {topic.description}'
+        return output
+
 
 class SyncFeedResponse:
     """

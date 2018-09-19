@@ -59,7 +59,7 @@ class FilingActivityElementV1:
     :param api_version: blah
     :param creation_date: integer filing activity identifier
     :param activity_id: integer filing activity identifier
-    :param =activity_type: integer filing activity identifier
+    :param activity_type: integer filing activity identifier
     :param specification_key: integer filing activity identifier
     :param origin: integer filing activity identifier
     :param origin_filing_id: integer filing activity identifier

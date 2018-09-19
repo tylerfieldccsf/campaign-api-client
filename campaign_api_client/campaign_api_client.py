@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys
+import argparse
 import requests
 import logging
 import json
@@ -13,13 +14,14 @@ from topics import *
 
 class Routes:
     SYSTEM_REPORT = "/system"
-    # SYNC = "/activity/v101/sync"
     SYNC_FEED = "/activity/v101/sync/feed"
     SYNC_SUBSCRIPTIONS = "/activity/v101/sync/subscriptions"
     SYNC_SESSIONS = "/activity/v101/sync/sessions"
 
     # First parameter is Session ID. Second parameter is Command Type
     SYNC_SESSION_COMMAND = "/activity/v101/sync/sessions/%s/commands/%s"
+
+    # First parameter is Subscription ID. Second parameter is Command Type
     SYNC_SUBSCRIPTION_COMMAND = "/activity/v101/sync/subscriptions/%s/commands/%s"
 
 
@@ -260,26 +262,19 @@ if __name__ == '__main__':
     campaign_api_client = CampaignApiClient(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg, db_user_arg,
                                             db_password_arg)
 
-    # Get Command line args
-    args = sys.argv
-    # logging.info(args)
-
-    if len(args) < 2:
-        campaign_api_client.show_usage()
-        sys.exit(0)
-
-    if args[1] == 'db':
-        campaign_api_client.execute_db_operations(args[2])
-    elif args[1] == 'feed':
-        # User can retrieve feed information
+    parser = argparse.ArgumentParser(description='Process Campaign API Sync Requests')
+    parser.add_argument('--feed', action='store_true', help='retrieve available feeds')
+    parser.add_argument('--subscription', nargs='*', help='list, create, or cancel a subscription')
+    parser.add_argument('--session', nargs='*', help='list, create, cancel, or complete a session')
+    parser.add_argument('--topic', nargs='*', help='sync feed topics')
+    args = parser.parse_args()
+    if args.feed:
         feed = campaign_api_client.get_feed()
-        output = f'Feed Id: {feed.id}, Feed Name: {feed.name}, Topics: '
-        for topic in feed.topics:
-            output += f'Topic Name: {topic.name} Description: {topic.description}, '
-        print(output)
-    elif args[1] == 'subscription':
+        print(feed)
+    elif args.subscription:
         # User can Create, Cancel, or List available subscriptions
-        if(args[2]) == 'list':
+        command = args.subscription[0]
+        if command == 'list':
             subs = campaign_api_client.execute_list_subscriptions()
             # Display subscription information
             output = f'Subscription Info:\n'
@@ -287,39 +282,38 @@ if __name__ == '__main__':
                 output += f'Subscription Name: {sub.name}, ID: {sub.id}, Version: {sub.version}\n'
             print(output)
         else:
-            if args[2] == 'create':
-                feed_name = args[3]
-                subscription_name = args[4]
+            if command == 'create':
+                feed_name = args.subscription[1]
+                subscription_name = args.subscription[2]
                 response = campaign_api_client.create_subscription(feed_name, subscription_name)
                 print(response)
-            elif args[2] == 'cancel':
-                subscription_id = args[2]
-                version = args[3]
+            elif command == 'cancel':
+                subscription_id = args.subscription[1]
+                version = args.subscription[2]
                 response = campaign_api_client.execute_subscription_command(subscription_id, version, SyncSubscriptionCommandType.Cancel.name)
                 print(response)
-    elif args[1] == 'session':
-        if args[2] == 'create':
-            subscription_id = args[3]
-            sync_session = campaign_api_client.create_session(subscription_id)
-            print(sync_session)
-        elif args[2] == 'cancel':
-            session_id = args[3]
-            version = args[4]
-            response = campaign_api_client.execute_session_command(session_id, version, SyncSessionCommandType.Cancel.name)
-            print(response)
-        elif args[2] == 'complete':
-            session_id = args[3]
-            version = args[4]
-            response = campaign_api_client.execute_session_command(session_id, version, SyncSessionCommandType.Complete.name)
-            print(response)
-    elif args[1] == 'topic':
-        session_id = args[2]
-        topic_name = args[3]
+    elif args.session:
+        command = args.session[0]
+        for arg in args.session:
+            if command == 'create':
+                subscription_id = args.session[1]
+                sync_session = campaign_api_client.create_session(subscription_id)
+                print(sync_session)
+            elif command == 'cancel':
+                session_id = args.session[1]
+                version = args.session[2]
+                response = campaign_api_client.execute_session_command(session_id, version,
+                                                                       SyncSessionCommandType.Cancel.name)
+                print(response)
+            elif command == 'complete':
+                session_id = args.session[1]
+                version = args.session[2]
+                response = campaign_api_client.execute_session_command(session_id, version, SyncSessionCommandType.Complete.name)
+                print(response)
+    elif args.topic:
+        session_id = args.topic[0]
+        topic_name = args.topic[1]
         if topic_name == "activities":
             campaign_api_client.sync_filing_activities(session_id)
         elif topic_name == "activity-elements":
             campaign_api_client.sync_filing_activity_elements(session_id)
-    else:
-        campaign_api_client.show_usage()
-
-    sys.exit(0)
