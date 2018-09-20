@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import sys
 import argparse
 import requests
 import logging
@@ -74,10 +75,9 @@ class CampaignApiClient:
         }
         return self.post_http_request(url, body)
 
-    def get_subscriptions(self, feed_id):
-        # TODO - support offset and limit for paging of sync subscriptions
-        # params = {'limit': limit, 'offset': offset}
-        params = {'feedId': feed_id, 'status': 'Active'}
+    def query_subscriptions(self, feed_id, limit=1000, offset=0):
+        # TODO - Support paging of results
+        params = {'feedId': feed_id, 'status': 'Active', 'limit': limit, 'offset': offset}
         url = self.base_url + Routes.SYNC_SUBSCRIPTIONS
         response = self.get_http_request(url, params)
         subscription = response['subscription']
@@ -241,11 +241,7 @@ if __name__ == '__main__':
                                             db_user_arg, db_password_arg)
 
     parser = argparse.ArgumentParser(description='Process Campaign API Sync Requests')
-
-
-
-    parser.add_argument('--re-sync', action='store_true', help='Find existing active subscription and sync available Feed Topics')
-
+    parser.add_argument('--re-sync', nargs=1, metavar='Subscription_Name', help='Find existing active subscription and sync available Feed Topics')
     parser.add_argument('--subscribe-and-sync', nargs=1, metavar='Subscription_Name',
                         help='create a new subscription and Sync available Feed Topics')
     parser.add_argument('--database', nargs=1, metavar='[create or rebuild]',
@@ -262,12 +258,33 @@ if __name__ == '__main__':
     # parser.add_argument('--version', action='version', help='Program Version Information')
     args = parser.parse_args()
 
-    if args.subscribe_and_sync:
+    if args.re_sync:
+        # Find existing active subscription for provided Subscription Name
+        name = args.re_sync[0]
+        subscriptions = campaign_api_client.repository.fetch_active_subscriptions_by_name(name)
+        if len(subscriptions) == 0:
+            print(f'No Active SyncSubscription found with Name {name}')
+            sys.exit(1)
+        # Create SyncSession
+        sync_session_response = campaign_api_client.create_session(subscriptions[0].id)
+        sess_id = sync_session_response['session']['id']
+        version = sync_session_response['session']['version']
+
+        # Synchronize Filing Activities
+        campaign_api_client.sync_filing_activities(sess_id)
+
+        # Synchronize Filing Elements
+        campaign_api_client.sync_filing_activity_elements(sess_id)
+
+        # Complete SyncSession
+        campaign_api_client.execute_session_command(sess_id, version, SyncSessionCommandType.Complete.name)
+    elif args.subscribe_and_sync:
         # Retrieve available SyncFeeds
         feed = campaign_api_client.retrieve_sync_feed()
 
         # Create SyncSubscription or use existing SyncSubscription with feed specified
-        subscription_response = campaign_api_client.create_subscription(feed.name, "My Campaign API Feed")
+        subscription_name = args.subscribe_and_sync[0]
+        subscription_response = campaign_api_client.create_subscription(feed.name, subscription_name)
 
         # Create SyncSession
         sync_session_response = campaign_api_client.create_session(subscription_response['subscription']['id'])

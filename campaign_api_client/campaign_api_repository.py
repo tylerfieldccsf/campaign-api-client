@@ -187,6 +187,23 @@ class CampaignApiRepository:
             logging.error(ex)
             self.conn.rollback()
 
+    def fetch_active_subscriptions_by_name(self, name):
+        logging.debug("Fetching Active Subscriptions")
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT * FROM sync_subscription WHERE status='Active' and name=%s", (name,))
+            subs = cursor.fetchall()
+            self.conn.commit()
+            cursor.close()
+            # return s if s is None else SyncSubscription(s[0], s[1], s[2], s[3], s[4], s[5], s[6], None)
+            subscriptions = []
+            for s in subs:
+                subscriptions.append(SyncSubscription(s[0], s[1], s[2], s[3], s[4], s[5], s[6]))
+            return subscriptions
+        except Exception as ex:
+            logging.error(ex)
+            self.conn.rollback()
+
     def cancel_subscription(self, subscription_id):
         logging.debug("Canceling Active Subscriptions")
         try:

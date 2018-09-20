@@ -55,12 +55,19 @@ class TestCampaignApiRepository(unittest.TestCase):
         sub = self.repository.fetch_subscription(active_sync_subscription.id)
         self.assertIsNotNone(sub)
         self.assertEqual("Test Feed", sub.name)
-        self.assertEqual("active", sub.status)
+        self.assertEqual("Active", sub.status)
         self.assertEqual(0, sub.version)
         self.assertEqual(active_sync_subscription.id, sub.id)
         self.assertEqual(active_sync_subscription.identity_id, sub.identity_id)
         self.assertEqual(active_sync_subscription.feed_id, sub.feed_id)
         self.assertEqual(False, sub.auto_complete)
+
+        # Retrieve sub by name
+        subs = self.repository.fetch_active_subscriptions_by_name("Test Feed")
+        self.assertIsNotNone(subs)
+        self.assertTrue(len(subs) > 0)
+        self.assertEqual("Test Feed", subs[0].name)
+        self.assertEqual("Active", subs[0].status)
 
         # Retrieve sub by fetchActiveSubs
         is_found = False
