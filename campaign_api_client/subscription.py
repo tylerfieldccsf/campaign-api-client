@@ -10,10 +10,9 @@ class SyncSubscription:
     :param version: Version number of the Subscription, required for command execution and incremented after a successful command
     :param identity_id: Id of the Identity who created/owns the Subscription
     :param feed_id: Id of the Feed the Subscription is for
-    :param name: Name of the Subcription - informational only
+    :param name: Name of the Subscription - informational only
     :param auto_complete: If true SynSessions created for this Subscription will be assigned status of Completed as soon as it is created. Defaults to false, can be overriden at SyncSession creation time
     :param status: Status of the Subscription
-    :param filters: Optional set of SyncFilters defined this Subscription
     """
     def __init__(self, id_arg, version, identity_id, feed_id, name, auto_complete, status):
         self.id = id_arg

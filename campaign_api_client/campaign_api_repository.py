@@ -9,7 +9,7 @@ from subscription import *
 class CampaignApiRepository:
     def __init__(self, host, db, user, password):
         conn_string = f"host='{host}' dbname='{db}' user='{user}' password='{password}'"
-        logging.debug('Connecting to database')
+        logging.debug(f'Connecting to {db} database')
 
         try:
             # get a connection, if a connect cannot be made an exception will be raised here
@@ -90,8 +90,8 @@ class CampaignApiRepository:
             a = cursor.fetchone()
             self.conn.commit()
             cursor.close()
-            return a if a is None else FilingActivityV1(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9],
-                                                        a[10], a[11])
+            return a if a is None else FilingActivityV101(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9],
+                                                          a[10], a[11])
         except Exception as ex:
             logging.error(ex)
             self.conn.rollback()
@@ -135,8 +135,8 @@ class CampaignApiRepository:
             a = cursor.fetchone()
             # self.conn.commit()
             cursor.close()
-            return a if a is None else FilingActivityElementV1(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-                                                               a[9], a[4], a[10], a[11], a[12])
+            return a if a is None else FilingActivityElementV101(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
+                                                                 a[9], a[4], a[10], a[11], a[12])
         except Exception as ex:
             logging.error(ex)
             self.conn.rollback()

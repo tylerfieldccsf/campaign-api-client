@@ -30,14 +30,9 @@ class TestCampaignApiRepository(unittest.TestCase):
         # fetch FilingActivity and assert stuff
         activity = self.repository.fetch_filing_activity(filing_activity.id)
         self.assertIsNotNone(activity)
-        self.assertEquals("New", activity.activity_type)
-        self.assertEquals("I come from the land down under", activity.origin)
-        self.assertEquals("filing_101", activity.filing_id)
-
-        # delete the FilingActivity
-        # self.repository.delete_filing_activity(filing_activity.id)
-        # activity = self.repository.fetch_filing_activity(filing_activity.id)
-        # self.assertIsNone(activity)
+        self.assertEqual("New", activity.activity_type)
+        self.assertEqual("I come from the land down under", activity.origin)
+        self.assertEqual("filing_101", activity.filing_id)
 
     def test03_filing_activity_element(self):
         logging.info("Running Filing Element Test...")
@@ -47,9 +42,9 @@ class TestCampaignApiRepository(unittest.TestCase):
         # fetch FilingActivity and assert stuff
         element = self.repository.fetch_filing_activity_element(filing_activity_element.id)
         self.assertIsNotNone(element)
-        self.assertEquals("New", element.activity_type)
-        self.assertEquals("I come from the land down under", element.origin)
-        self.assertEquals("filing_101", element.origin_filing_id)
+        self.assertEqual("New", element.activity_type)
+        self.assertEqual("I come from the land down under", element.origin)
+        self.assertEqual("filing_101", element.origin_filing_id)
 
     def test04_sync_subscription(self):
         logging.info("Testing Sync Subscription")
@@ -59,13 +54,13 @@ class TestCampaignApiRepository(unittest.TestCase):
         # Retrieve sub by ID
         sub = self.repository.fetch_subscription(active_sync_subscription.id)
         self.assertIsNotNone(sub)
-        self.assertEquals("Test Feed", sub.name)
-        self.assertEquals("active", sub.status)
-        self.assertEquals(0, sub.version)
-        self.assertEquals(active_sync_subscription.id, sub.id)
-        self.assertEquals(active_sync_subscription.identity_id, sub.identity_id)
-        self.assertEquals(active_sync_subscription.feed_id, sub.feed_id)
-        self.assertEquals(False, sub.auto_complete)
+        self.assertEqual("Test Feed", sub.name)
+        self.assertEqual("active", sub.status)
+        self.assertEqual(0, sub.version)
+        self.assertEqual(active_sync_subscription.id, sub.id)
+        self.assertEqual(active_sync_subscription.identity_id, sub.identity_id)
+        self.assertEqual(active_sync_subscription.feed_id, sub.feed_id)
+        self.assertEqual(False, sub.auto_complete)
 
         # Retrieve sub by fetchActiveSubs
         is_found = False
@@ -79,7 +74,7 @@ class TestCampaignApiRepository(unittest.TestCase):
         self.repository.cancel_subscription(active_sync_subscription.id)
         sub = self.repository.fetch_subscription(active_sync_subscription.id)
         self.assertIsNotNone(sub)
-        self.assertEquals("canceled", sub.status)
+        self.assertEqual("canceled", sub.status)
 
         # Delete the subscription
         self.repository.delete_subscription(active_sync_subscription.id)

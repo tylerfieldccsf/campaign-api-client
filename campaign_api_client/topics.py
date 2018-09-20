@@ -14,26 +14,9 @@ class ListQueryResult:
         self.page_number = page_number
 
 
-class FilingActivityV1:
-    """
-    FilingActivityV1 does blah, blah
-    :param id_arg: integer filing activity identifier
-    :param version: description of arg
-    :param api_version: description
-    :param creation_date: description of arg
-    :param last_update: description of arg
-    :param activity_type: description of arg
-    :param specification_key: description of arg
-    :param origin: description of arg
-    :param filing_id: description of arg
-    :param agency_id: description of arg
-    :param aid: description of arg
-    :param publish_sequence: description of arg
-    """
-
+class FilingActivityV101:
     def __init__(self, id_arg, version, api_version, creation_date, last_update, activity_type, specification_key,
                  origin, filing_id, aid, apply_to_filing_id, publish_sequence):
-        """Class constructor"""
         self.id = id_arg
         self.version = version
         self.api_version = api_version
@@ -52,25 +35,7 @@ class FilingActivityV1:
         return "Activity Type: {activityType}, origin: {origin} ID: {id}".format(activityType=self.activity_type, origin=self.origin, id=self.id)
 
 
-class FilingActivityElementV1:
-    """
-    FlilingElementV1 does blah, blah
-    :param id_arg: integer filing element identifier
-    :param api_version: blah
-    :param creation_date: integer filing activity identifier
-    :param activity_id: integer filing activity identifier
-    :param activity_type: integer filing activity identifier
-    :param specification_key: integer filing activity identifier
-    :param origin: integer filing activity identifier
-    :param origin_filing_id: integer filing activity identifier
-    :param agency_id: integer filing activity identifier
-    :param apply_to_filing_id: integer filing activity identifier
-    :param publish_sequence: integer filing activity identifier
-    :param element_type: integer filing activity identifier
-    :param element_type: integer filing activity identifier
-    :param model_json: integer filing activity identifier
-    """
-
+class FilingActivityElementV101:
     def __init__(self, id_arg, api_version, creation_date, activity_id, activity_type, specification_key, origin,
                  origin_filing_id, agency_id, apply_to_filing_id, publish_sequence, element_type,
                  element_index, model_json):
@@ -92,14 +57,13 @@ class FilingActivityElementV1:
 
 class SystemReport:
     """
-    SystemReport does blah, blah
-    :param name: description of arg
-    :param general_status: description of arg
-    :param components: description of arg
+    System Report describing status and System Component information
+    :param name: System name
+    :param general_status: General status over the system
+    :param components: System Components of this system
     """
 
     def __init__(self, name, general_status, components):
-        """Class constructor"""
         self.name = name
         self.general_status = general_status
         self.components = []
@@ -115,17 +79,16 @@ class SystemReport:
 
 class SystemComponentInfo:
     """
-    SystemComponentInfo does blah, blah
-    :param name: description of arg
-    :param status: description of arg
-    :param build_version: description of arg
-    :param build_vcs_name: description of arg
-    :param build_date_time: description of arg
-    :param message: description of arg
+    SystemComponentInfo System Component Info describing status and build information
+    :param name: Name of the component
+    :param status: Status of the component
+    :param build_version: Build version (from the assembly)
+    :param build_vcs_name: VCS Name (typically a tag or branch name
+    :param build_date_time: DateTime assembly was built
+    :param message: General message
     """
 
     def __init__(self, name, status, build_version, build_vcs_name, build_date_time, message):
-        """Class constructor"""
         self.name = name
         self.status = status
         self.build_version = build_version
