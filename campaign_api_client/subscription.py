@@ -64,7 +64,9 @@ class SyncSubscriptionResponse:
     def __init__(self, execution_id, command_type, subscription, description):
         self.execution_id = execution_id
         self.command_type = command_type
-        self.subscription = subscription
+        self.subscription = SyncSubscription(subscription['id'], subscription['version'], subscription['identityId'],
+                                             subscription['feedId'], subscription['name'], subscription['autoComplete'],
+                                             subscription['status'])
         self.description = description
 
 

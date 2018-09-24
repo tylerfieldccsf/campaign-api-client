@@ -12,7 +12,7 @@ Usage
 2) Use the campaign_api_client.py file as a command line utility to perform necessary operations
     * For list of available commands: `python campaign_api_client.py --help`
 3) Create local postgres database that will contain the synchronized Campaign data
-    * Create a local postgres database that matches the value in config.json file. (The default is 'campaign-api-sync')
+    * Create a local postgres database that matches the DB_NAME value in config.json file. (The default is 'campaign-api-sync')
     * Create schema the first time
         example: `python campaign_api_client.py --database create`
     * Rebuild the schema (drop all tables and re-create from SQL schema file)

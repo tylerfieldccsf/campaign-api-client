@@ -90,7 +90,10 @@ class SyncSessionResponse:
     def __init__(self, execution_id, command_type, session, description):
         self.execution_id = execution_id
         self.command_type = command_type
-        self.session = session
+        self.session = SyncSession(session['id'], session['version'], session['subscriptionId'], session['identityId'],
+                                   session['autoComplete'], session['status'], session['sequenceRangeBegin'],
+                                   session['sequenceRangeEnd'], session['dateRangeBegin'], session['dateRangeEnd'],
+                                   session['startedAt'], session['endedAt'], session['reads'])
         self.description = description
 
 

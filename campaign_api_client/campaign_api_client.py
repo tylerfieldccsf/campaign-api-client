@@ -64,7 +64,7 @@ class CampaignApiClient:
                                     subscription['feedId'], subscription['name'],subscription['autoComplete'],
                                     subscription['status'])
         self.repository.save_sync_subscription(sync_sub)
-        return response
+        return SyncSubscriptionResponse(response['executionId'], response['commandType'], response['subscription'], response['description'])
 
     def execute_subscription_command(self, sub_id, subscription_version, subscription_command_type):
         ext = Routes.SYNC_SUBSCRIPTION_COMMAND % (sub_id, subscription_command_type)
@@ -92,7 +92,8 @@ class CampaignApiClient:
         body = {
             'subscriptionId': sub_id
         }
-        return self.post_http_request(url, body)
+        response = self.post_http_request(url, body)
+        return SyncSessionResponse(response['executionId'], response['commandType'], response['session'], response['description'])
 
     def execute_session_command(self, session_id, session_version, session_command_type):
         url = self.base_url + Routes.SYNC_SESSION_COMMAND % (session_id, session_command_type)
@@ -168,49 +169,6 @@ class CampaignApiClient:
     def get_feed(self):
         return self.retrieve_sync_feed()
 
-    def main(self):
-        sync_session = None
-        try:
-            # Build SQL DB
-            self.rebuild_database_schema()
-
-            # Verify the system is ready
-            sys_report = self.fetch_system_report()
-            if sys_report.general_status == 'Ready':
-                logging.info("Campaign API Sync is Ready")
-
-                # Retrieve available SyncFeeds
-                feed = self.retrieve_sync_feed()
-
-                # Create SyncSubscription or use existing SyncSubscription with feed specified
-                subscription = self.create_subscription(feed.name, "My Campaign API Feed")
-
-                # Get the current subscriptions
-                # subscriptions = self.get_subscriptions(feed.id)
-
-                # Create SyncSession
-                sync_session = self.create_session(subscription.id)
-
-                # Synchronize Filing Activities
-                self.sync_filing_activities(sync_session.id)
-
-                # Synchronize Filing Elements
-                self.sync_filing_activity_elements(sync_session.id)
-
-                # Complete SyncSession
-                self.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Complete.name)
-
-                # Cancel the subscription
-                resp = self.execute_subscription_command(subscription.id, subscription.version, SyncSubscriptionCommandType.Cancel.name)
-                print(resp)
-            else:
-                logging.info("The Campaign API system status is %s and is not Ready", sys_report.general_status)
-        except Exception as ex:
-            # Cancel Session on error
-            if sync_session is not None:
-                self.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Cancel.name)
-            logging.info("Error running CampaignApiClient: ", ex)
-
 
 if __name__ == '__main__':
     logger = logging.getLogger()
@@ -233,9 +191,6 @@ if __name__ == '__main__':
     db_name_arg = config[env]['DB_NAME']
     db_user_arg = config[env]['DB_USER']
     db_password_arg = config[env]['DB_PASSWORD']
-
-    # CampaignApiClient(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg, db_user_arg,
-    #                   db_password_arg).main()
 
     campaign_api_client = CampaignApiClient(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg,
                                             db_user_arg, db_password_arg)
@@ -267,8 +222,8 @@ if __name__ == '__main__':
             sys.exit(1)
         # Create SyncSession
         sync_session_response = campaign_api_client.create_session(subscriptions[0].id)
-        sess_id = sync_session_response['session']['id']
-        version = sync_session_response['session']['version']
+        sess_id = sync_session_response.session.id
+        version = sync_session_response.session.version
 
         # Synchronize Filing Activities
         campaign_api_client.sync_filing_activities(sess_id)
@@ -287,9 +242,9 @@ if __name__ == '__main__':
         subscription_response = campaign_api_client.create_subscription(feed.name, subscription_name)
 
         # Create SyncSession
-        sync_session_response = campaign_api_client.create_session(subscription_response['subscription']['id'])
-        sess_id = sync_session_response['session']['id']
-        version = sync_session_response['session']['version']
+        sync_session_response = campaign_api_client.create_session(subscription_response.subscription.id)
+        sess_id = sync_session_response.session.id
+        version = sync_session_response.session.version
 
         # Synchronize Filing Activities
         campaign_api_client.sync_filing_activities(sess_id)
