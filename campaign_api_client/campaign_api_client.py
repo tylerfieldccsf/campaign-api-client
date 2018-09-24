@@ -39,6 +39,7 @@ class CampaignApiClient:
         self.repository = CampaignApiRepository(db_host, db_name, db_user, db_password)
 
     def fetch_system_report(self):
+        logging.debug('Checking to verify the Campaign API system is ready')
         url = self.base_url + Routes.SYSTEM_REPORT
         sr = self.get_http_request(url)
         system_report = SystemReport(sr['name'], sr['generalStatus'], sr['components'])
@@ -53,6 +54,7 @@ class CampaignApiClient:
         return system_report
 
     def create_subscription(self, feed_name_arg, subscription_name_arg):
+        logging.debug('Creating a SyncSubscription')
         url = self.base_url + Routes.SYNC_SUBSCRIPTIONS
         body = {
             'feedName': feed_name_arg,
@@ -64,45 +66,53 @@ class CampaignApiClient:
                                     subscription['feedId'], subscription['name'],subscription['autoComplete'],
                                     subscription['status'])
         self.repository.save_sync_subscription(sync_sub)
+        logging.debug('SyncSubscription created successfully')
         return SyncSubscriptionResponse(response['executionId'], response['commandType'], response['subscription'], response['description'])
 
     def execute_subscription_command(self, sub_id, subscription_version, subscription_command_type):
+        logging.debug(f'Executing {subscription_command_type} SyncSubscription command')
         ext = Routes.SYNC_SUBSCRIPTION_COMMAND % (sub_id, subscription_command_type)
         url = self.base_url + ext
         body = {
             'id': sub_id,
             'version': subscription_version
         }
-        return self.post_http_request(url, body)
+        response = self.post_http_request(url, body)
+        logging.debug(f'{subscription_command_type} SyncSubscription executed successfully')
+        return response
 
     def query_subscriptions(self, feed_id, limit=1000, offset=0):
         # TODO - Support paging of results
+        logging.debug('Retrieving available subscriptions\n')
         params = {'feedId': feed_id, 'status': 'Active', 'limit': limit, 'offset': offset}
         url = self.base_url + Routes.SYNC_SUBSCRIPTIONS
-        response = self.get_http_request(url, params)
-        subscription = response['subscription']
-        sync_sub = SyncSubscription(subscription['id'], subscription['version'], subscription['identityId'], subscription['feedId'], subscription['name'],
-                                    subscription['autoComplete'], subscription['status'])
-
-        self.repository.save_sync_subscription(sync_sub)
-        return sync_sub
+        qr = self.get_http_request(url, params)
+        return ListQueryResult(qr['results'], qr['offset'], qr['hasPreviousPage'], qr['hasNextPage'], qr['limit'],
+                               qr['totalCount'], qr['empty'], qr['count'], qr['pageNumber'])
 
     def create_session(self, sub_id):
+        logging.debug(f'Creating a SyncSession using SyncSubscription {sub_id}')
         url = self.base_url + Routes.SYNC_SESSIONS
         body = {
             'subscriptionId': sub_id
         }
         response = self.post_http_request(url, body)
-        return SyncSessionResponse(response['executionId'], response['commandType'], response['session'], response['description'])
+        logging.debug(f'SyncSession using SyncSubscription {sub_id} created successfully')
+        return SyncSessionResponse(response['executionId'], response['commandType'], response['session'],
+                                   response['description'])
 
     def execute_session_command(self, session_id, session_version, session_command_type):
+        logging.debug(f'Executing {session_command_type} SyncSession command')
         url = self.base_url + Routes.SYNC_SESSION_COMMAND % (session_id, session_command_type)
         body = {
             'version': session_version
         }
-        return self.post_http_request(url, body)
+        response = self.post_http_request(url, body)
+        logging.debug(f'{session_command_type} SyncSession executed successfully')
+        return response
 
-    def fetch_sync_topic(self, session_id, topic, limit=1000, offset=0):
+    def fetch_sync_topics(self, session_id, topic, limit=1000, offset=0):
+        logging.debug(f'Fetching {topic} topic\n')
         params = {'limit': limit, 'offset': offset}
         url = f'{self.base_url}/{Routes.SYNC_SESSIONS}/{session_id}/{topic}'
         qr = self.get_http_request(url, params)
@@ -110,13 +120,15 @@ class CampaignApiClient:
                                qr['totalCount'], qr['empty'], qr['count'], qr['pageNumber'])
 
     def sync_filing_activities(self, session_id):
+        logging.debug('Syncing Filing Activities')
         limit, offset = 10, 0
-        activities_qr = self.fetch_sync_topic(session_id, "activities", limit, offset)
+        activities_qr = self.fetch_sync_topics(session_id, "activities", limit, offset)
         self.save_filing_activities(activities_qr.results)
         while activities_qr.hasNextPage:
             offset = offset + limit
-            activities_qr = self.fetch_sync_topic(session_id, "activities", limit, offset)
+            activities_qr = self.fetch_sync_topics(session_id, "activities", limit, offset)
             self.save_filing_activities(activities_qr.results)
+        logging.debug('Filing Activities synchronized successfully')
 
     def save_filing_activities(self, filing_activities):
         for a in filing_activities:
@@ -127,11 +139,11 @@ class CampaignApiClient:
 
     def sync_filing_activity_elements(self, session_id):
         limit, offset = 10, 0
-        elements_qr = self.fetch_sync_topic(session_id, "activity-elements", limit, offset)
+        elements_qr = self.fetch_sync_topics(session_id, "activity-elements", limit, offset)
         self.save_filing_activity_elements(elements_qr.results)
         while elements_qr.hasNextPage:
             offset = offset + limit
-            elements_qr = self.fetch_sync_topic(session_id, "activity-elements", limit, offset)
+            elements_qr = self.fetch_sync_topics(session_id, "activity-elements", limit, offset)
             self.save_filing_activity_elements(elements_qr.results)
 
     def save_filing_activity_elements(self, filing_elements):
@@ -143,31 +155,34 @@ class CampaignApiClient:
             self.repository.save_filing_activity_element(element)
 
     def retrieve_sync_feed(self):
+        logging.debug('Retrieving SyncFeed')
         url = self.base_url + Routes.SYNC_FEED
-        feed = self.get_http_request(url)
-        return SyncFeed(feed['id'], feed['version'], feed['productType'], feed['apiVersion'], feed['name'],
-                        feed['description'], feed['status'], feed['topics'])
+        fd = self.get_http_request(url)
+        return SyncFeed(fd['id'], fd['version'], fd['productType'], fd['apiVersion'], fd['name'],
+                        fd['description'], fd['status'], fd['topics'])
 
     def create_database_schema(self):
+        logging.debug('Creating database schema')
         self.repository.execute_sql_scripts()
+        logging.debug('Database schema created successfully')
 
     def rebuild_database_schema(self):
+        logging.debug('Rebuilding database schema')
         self.repository.rebuild_schema()
 
     def post_http_request(self, url, body=None):
+        logging.debug(f'Making POST HTTP request to {url}')
         response = requests.post(url, auth=(self.user, self.password), data=json.dumps(body), headers=self.headers)
         if response.status_code not in [200, 201]:
             raise Exception(f'Error requesting Url: {url}, Response code: {response.status_code}. Error Message: {response.text}')
         return response.json()
 
     def get_http_request(self, url, params=None):
+        logging.debug(f'Making GET HTTP request to {url}')
         response = requests.get(url, params=params, auth=(self.user, self.password), headers=self.headers)
         if response.status_code not in [200, 201]:
             raise Exception(f'Error requesting Url: {url}, Response code: {response.status_code}. Error Message: {response.text}')
         return response.json()
-
-    def get_feed(self):
-        return self.retrieve_sync_feed()
 
 
 if __name__ == '__main__':
@@ -205,7 +220,8 @@ if __name__ == '__main__':
                         help='create a new subscription')
     parser.add_argument('--cancel-subscription', nargs=2, metavar=('subscription_id', 'subscription_version'),
                         help='Cancel an existing subscription')
-    parser.add_argument('--session', nargs=3, metavar=('[create, cancel, or complete]', 'session_id', 'session_version'), help='create, cancel, or complete a session')
+    parser.add_argument('--session', nargs=3, metavar=('[create, cancel, or complete]', 'session_id', 'session_version'),
+                        help='create, cancel, or complete a session')
     parser.add_argument('--sync-topic', nargs=2, metavar=('session_id', 'topic_name'), help='sync a feed topic')
     parser.add_argument('--list-subscriptions', action='store_true', help='retrieve active subscriptions')
     parser.add_argument('--system-report', action='store_true', help='retrieve general system status')
@@ -263,7 +279,7 @@ if __name__ == '__main__':
         elif command == 'rebuild':
             campaign_api_client.repository.rebuild_schema()
     elif args.feed:
-        sync_feed = campaign_api_client.get_feed()
+        sync_feed = campaign_api_client.retrieve_sync_feed()
         print(sync_feed)
     elif args.list_subscriptions:
         subs = campaign_api_client.repository.fetch_active_subscriptions()

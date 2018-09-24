@@ -18,7 +18,7 @@ Usage
     * Rebuild the schema (drop all tables and re-create from SQL schema file)
         example: `python campaign_api_client.py --database rebuild`
 4) View available Sync Feeds and Sync Topics:
-    * example: `python campaign_api_client.py`
+    * example: `python campaign_api_client.py --feed`
 5) Create a new Sync Subscription for a Sync Feed. The subscription can be maintained over the long term if desired, and does not need to be re-created. Command arguments are an existing Feed Name and user provided Subscription Name:
     * example: `python campaign_api_client.py --create-subscription FilingActivity_V101 Test_Filing_Activity_Sub`
 6) Create a new Sync Session associated with a Sync Subscription by providing the subscription ID as input argument. The lifecycle of the Sync Session is only for a single Sync cycle, and will be set to completed when finished, or canceled if necessary.

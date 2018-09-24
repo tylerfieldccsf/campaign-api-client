@@ -6,6 +6,23 @@ from campaign_api_client import CampaignApiClient
 
 
 def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password):
+    """
+    This demonstrates the complete lifecycle of the Campaign API sync process.
+    1) Create a SyncSubscription
+    2) Create a SyncSession using the SyncSubscription. This will be the start of the session
+    3) Synchronize FilingActivities
+    4) Synchronize FilingActivityElements
+    5) Complete the SyncSession. This will be the end of the session
+    6) Cancel the SyncSubscription. SyncSubscriptions are long living, and do not need to be canceled between SyncSessions
+
+    :param api_url: Base URL of the API. Example - "https://netfile.com/filing/api"
+    :param api_user: Username credential to authenticate against the Campaign API
+    :param api_password: Password credential to authenticate against the Campaign API
+    :param db_host: Name of host to connect to PostgreSQL database
+    :param db_name: Postgres database to connect to
+    :param db_user: Postgres database username
+    :param db_password: Postgres database password
+    """
     sync_session = None
     api_client = None
     try:
@@ -40,8 +57,7 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
             api_client.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Complete.name)
 
             # Cancel the subscription
-            resp = api_client.execute_subscription_command(subscription.id, subscription.version, SyncSubscriptionCommandType.Cancel.name)
-            print(resp)
+            api_client.execute_subscription_command(subscription.id, subscription.version, SyncSubscriptionCommandType.Cancel.name)
         else:
             logging.info("The Campaign API system status is %s and is not Ready", sys_report.general_status)
     except Exception as ex:

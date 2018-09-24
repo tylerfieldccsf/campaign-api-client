@@ -38,7 +38,6 @@ class CampaignApiRepository:
             self.conn.rollback()
 
     def drop_schema(self):
-        logging.debug("Dropping Schema")
         try:
             cursor = self.conn.cursor()
             cursor.execute("""DROP SCHEMA public CASCADE;CREATE SCHEMA public;""")
@@ -49,12 +48,10 @@ class CampaignApiRepository:
             self.conn.rollback()
 
     def rebuild_schema(self):
-        logging.debug("Rebuilding Schema")
         self.drop_schema()
         self.execute_sql_scripts()
 
     def save_filing_activity(self, activity):
-        logging.debug("Saving Filing Activity")
         try:
             cursor = self.conn.cursor()
             found_activity = self.fetch_filing_activity(activity.id)
@@ -83,7 +80,6 @@ class CampaignApiRepository:
             self.conn.rollback()
 
     def fetch_filing_activity(self, activity_id):
-        logging.debug("Fetching Filing Activity")
         try:
             cursor = self.conn.cursor()
             cursor.execute("SELECT * FROM filing_activity WHERE id=%s", (str(activity_id),))
@@ -97,7 +93,6 @@ class CampaignApiRepository:
             self.conn.rollback()
 
     def save_filing_activity_element(self, element):
-        logging.debug("Saving Filing Element")
         try:
             cursor = self.conn.cursor()
             found_element = self.fetch_filing_activity_element(element.id)
@@ -128,7 +123,6 @@ class CampaignApiRepository:
             self.conn.rollback()
 
     def fetch_filing_activity_element(self, element_id):
-        logging.debug("Fetching Filing Element")
         try:
             cursor = self.conn.cursor()
             cursor.execute("SELECT * FROM filing_activity_element WHERE id=%s", (str(element_id),))
@@ -142,7 +136,6 @@ class CampaignApiRepository:
             self.conn.rollback()
 
     def save_sync_subscription(self, sub):
-        logging.debug("Saving Sync Subscription")
         try:
             cursor = self.conn.cursor()
             cursor.execute("""INSERT INTO sync_subscription (id, version, identity_id, feed_id, name, auto_complete, status)
@@ -158,7 +151,6 @@ class CampaignApiRepository:
         self.conn.commit()
 
     def fetch_subscription(self, subscription_id):
-        logging.debug("Fetching Active Subscription")
         try:
             cursor = self.conn.cursor()
             cursor.execute("SELECT * FROM sync_subscription WHERE id=%s", (subscription_id,))
@@ -171,7 +163,6 @@ class CampaignApiRepository:
             self.conn.rollback()
 
     def fetch_active_subscriptions(self):
-        logging.debug("Fetching Active Subscriptions")
         try:
             cursor = self.conn.cursor()
             cursor.execute("SELECT * FROM sync_subscription WHERE status='Active'")
@@ -188,7 +179,6 @@ class CampaignApiRepository:
             self.conn.rollback()
 
     def fetch_active_subscriptions_by_name(self, name):
-        logging.debug("Fetching Active Subscriptions")
         try:
             cursor = self.conn.cursor()
             cursor.execute("SELECT * FROM sync_subscription WHERE status='Active' and name=%s", (name,))
@@ -205,7 +195,6 @@ class CampaignApiRepository:
             self.conn.rollback()
 
     def cancel_subscription(self, subscription_id):
-        logging.debug("Canceling Active Subscriptions")
         try:
             cursor = self.conn.cursor()
             cursor.execute("UPDATE sync_subscription SET status='canceled' WHERE id=%s", (subscription_id,))
@@ -216,7 +205,6 @@ class CampaignApiRepository:
             self.conn.rollback()
 
     def delete_subscription(self, subscription_id):
-        logging.debug("Deleting Sync Subscription")
         try:
             cursor = self.conn.cursor()
             cursor.execute("DELETE FROM sync_subscription WHERE id=%s", (subscription_id,))
