@@ -37,6 +37,14 @@ class SyncSession:
         self.ended_at = ended_at
         self.reads = reads
 
+    def __str__(self):
+        output = f'SyncSession: id={self.id}, version={self.version}, subscription_id={self.subscription_id}, '
+        output += f'identity_id={self.identity_id}, auto_complete={self.auto_complete}, status={self.status}, '
+        output += f'sequence_range_begin={self.sequence_range_begin}, sequence_range_end={self.sequence_range_end}, '
+        output += f'date_range_begin={self.date_range_begin}, data_range_end={self.data_range_end}, '
+        output += f'started_at={self.started_at}, ended_at={self.ended_at}'
+        return output
+
 
 class SyncSessionRead:
     """

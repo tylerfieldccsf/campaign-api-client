@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import os
+import sys
 import psycopg2
 import logging
 from topics import *
@@ -14,9 +15,16 @@ class CampaignApiRepository:
         try:
             # get a connection, if a connect cannot be made an exception will be raised here
             self.conn = psycopg2.connect(conn_string)
-            logging.debug("Connected to database!")
+            logging.debug("Connected to database successfully")
+        except psycopg2.Error as err:
+            logging.error("Database Error Connecting: %s" % err)
+            sys.exit()
         except Exception as ex:
-            logging.error("Error Connecting to the database: %s" % ex)
+            logging.error("Unexpected error connecting to the database: %s" % ex)
+            sys.exit()
+
+    def close_connection(self):
+        self.conn.close()
 
     def execute_sql_scripts(self):
         try:
@@ -156,21 +164,6 @@ class CampaignApiRepository:
         except Exception as ex:
             logging.error(ex)
             self.conn.rollback()
-
-    # def save_sync_subscription(self, sub):
-    #     try:
-    #         cursor = self.conn.cursor()
-    #         cursor.execute("""INSERT INTO sync_subscription (id, version, identity_id, feed_id, name, auto_complete, status)
-    #                             VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-    #                        (sub.id, sub.version, sub.identity_id, sub.feed_id, sub.name, sub.auto_complete, sub.status))
-    #         self.conn.commit()
-    #         cursor.close()
-    #     except Exception as ex:
-    #         logging.error(ex)
-    #         self.conn.rollback()
-
-    def commit(self):
-        self.conn.commit()
 
     def fetch_subscription(self, subscription_id):
         try:

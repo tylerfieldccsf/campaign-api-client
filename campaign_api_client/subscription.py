@@ -23,6 +23,9 @@ class SyncSubscription:
         self.auto_complete = auto_complete
         self.status = status
 
+    def __str__(self):
+        return f'Subscription Name: {self.name}, Status: {self.status}, ID: {self.id}, Version: {self.version}'
+
 
 class SyncSubscriptionStatus(Enum):
     Active = 1
