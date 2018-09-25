@@ -76,6 +76,9 @@ class SystemReport:
             message = component['message']
             self.components.append(SystemComponentInfo(name, status, build_version, build_vcs_name, build_date_time, message))
 
+    def is_ready(self):
+        return self.general_status == 'Ready'
+
 
 class SystemComponentInfo:
     """

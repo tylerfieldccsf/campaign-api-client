@@ -107,7 +107,7 @@ class CampaignApiRepository:
                                 element.apply_to_filing_id, element.publish_sequence, element.element_index,
                                 element.model_json, element.specification_key))
             else:
-                # Update existing Riling Element
+                # Update existing Filing Element
                 cursor.execute("""UPDATE filing_activity_element SET api_version=%s, creation_date=%s, activity_id=%s,
                  activity_type=%s, specification_key=%s, origin=%s, origin_filing_id=%s, agency_id=%s, 
                  apply_to_filing_id=%s, publish_sequence=%s, element_type=%s, model_json=%s, element_index=%s
@@ -138,14 +138,36 @@ class CampaignApiRepository:
     def save_sync_subscription(self, sub):
         try:
             cursor = self.conn.cursor()
-            cursor.execute("""INSERT INTO sync_subscription (id, version, identity_id, feed_id, name, auto_complete, status)
-                                VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-                           (sub.id, sub.version, sub.identity_id, sub.feed_id, sub.name, sub.auto_complete, sub.status))
+            found_subscription = self.fetch_subscription(sub.id)
+            if found_subscription is None:
+                # Insert new subscription
+                cursor.execute("""INSERT INTO sync_subscription (id, version, identity_id, feed_id, name, auto_complete, status)
+                                  VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                               (sub.id, sub.version, sub.identity_id, sub.feed_id, sub.name, sub.auto_complete,
+                                sub.status))
+            else:
+                # Update existing Riling Element
+                cursor.execute("""UPDATE sync_subscription SET version=%s, identity_id=%s,
+                                 feed_id=%s, name=%s, auto_complete=%s, status=%s
+                                 where id=%s""", (sub.version, sub.identity_id, sub.feed_id, sub.name, sub.auto_complete, sub.status, sub.id))
+
             self.conn.commit()
             cursor.close()
         except Exception as ex:
             logging.error(ex)
             self.conn.rollback()
+
+    # def save_sync_subscription(self, sub):
+    #     try:
+    #         cursor = self.conn.cursor()
+    #         cursor.execute("""INSERT INTO sync_subscription (id, version, identity_id, feed_id, name, auto_complete, status)
+    #                             VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+    #                        (sub.id, sub.version, sub.identity_id, sub.feed_id, sub.name, sub.auto_complete, sub.status))
+    #         self.conn.commit()
+    #         cursor.close()
+    #     except Exception as ex:
+    #         logging.error(ex)
+    #         self.conn.rollback()
 
     def commit(self):
         self.conn.commit()

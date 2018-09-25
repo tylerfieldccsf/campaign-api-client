@@ -79,6 +79,11 @@ class CampaignApiClient:
         }
         response = self.post_http_request(url, body)
         logging.debug(f'{subscription_command_type} SyncSubscription executed successfully')
+
+        s = response['subscription']
+        subscription = SyncSubscription(s['id'], s['version'], s['identityId'], s['feedId'], s['name'],
+                                        s['autoComplete'], s['status'])
+        self.repository.save_sync_subscription(subscription)
         return response
 
     def query_subscriptions(self, feed_id, limit=1000, offset=0):
@@ -112,16 +117,16 @@ class CampaignApiClient:
         return response
 
     def fetch_sync_topics(self, session_id, topic, limit=1000, offset=0):
-        logging.debug(f'Fetching {topic} topic\n')
+        logging.debug(f'Fetching {topic} topic: offset={offset}, limit={limit}\n')
         params = {'limit': limit, 'offset': offset}
         url = f'{self.base_url}/{Routes.SYNC_SESSIONS}/{session_id}/{topic}'
         qr = self.get_http_request(url, params)
         return ListQueryResult(qr['results'], qr['offset'], qr['hasPreviousPage'], qr['hasNextPage'], qr['limit'],
                                qr['totalCount'], qr['empty'], qr['count'], qr['pageNumber'])
 
-    def sync_filing_activities(self, session_id):
+    def sync_filing_activities(self, session_id, limit):
         logging.debug('Syncing Filing Activities')
-        limit, offset = 10, 0
+        offset = 0
         activities_qr = self.fetch_sync_topics(session_id, "activities", limit, offset)
         self.save_filing_activities(activities_qr.results)
         while activities_qr.hasNextPage:
@@ -137,8 +142,8 @@ class CampaignApiClient:
                                           a['aid'], a['applyToFilingId'], a['publishSequence'])
             self.repository.save_filing_activity(activity)
 
-    def sync_filing_activity_elements(self, session_id):
-        limit, offset = 10, 0
+    def sync_filing_activity_elements(self, session_id, limit):
+        offset = 0
         elements_qr = self.fetch_sync_topics(session_id, "activity-elements", limit, offset)
         self.save_filing_activity_elements(elements_qr.results)
         while elements_qr.hasNextPage:
@@ -242,10 +247,11 @@ if __name__ == '__main__':
         version = sync_session_response.session.version
 
         # Synchronize Filing Activities
-        campaign_api_client.sync_filing_activities(sess_id)
+        page_size = 1000
+        campaign_api_client.sync_filing_activities(sess_id, page_size)
 
         # Synchronize Filing Elements
-        campaign_api_client.sync_filing_activity_elements(sess_id)
+        campaign_api_client.sync_filing_activity_elements(sess_id, page_size)
 
         # Complete SyncSession
         campaign_api_client.execute_session_command(sess_id, version, SyncSessionCommandType.Complete.name)
@@ -263,10 +269,11 @@ if __name__ == '__main__':
         version = sync_session_response.session.version
 
         # Synchronize Filing Activities
-        campaign_api_client.sync_filing_activities(sess_id)
+        page_size = 1000
+        campaign_api_client.sync_filing_activities(sess_id, page_size)
 
         # Synchronize Filing Elements
-        campaign_api_client.sync_filing_activity_elements(sess_id)
+        campaign_api_client.sync_filing_activity_elements(sess_id, page_size)
 
         # Complete SyncSession
         campaign_api_client.execute_session_command(sess_id, version, SyncSessionCommandType.Complete.name)
@@ -318,7 +325,8 @@ if __name__ == '__main__':
     elif args.sync_topic:
         sess_id = args.sync_topic[0]
         topic_name = args.sync_topic[1]
+        page_size = 1000
         if topic_name == "activities":
-            campaign_api_client.sync_filing_activities(sess_id)
+            campaign_api_client.sync_filing_activities(sess_id, page_size)
         elif topic_name == "activity-elements":
-            campaign_api_client.sync_filing_activity_elements(sess_id)
+            campaign_api_client.sync_filing_activity_elements(sess_id, page_size)
