@@ -27,7 +27,6 @@ class Routes:
 
 class CampaignApiClient:
     """Provides support for synchronizing local database with Campaign API filing data"""
-
     def __init__(self, base_url, api_user, api_password, db_host, db_name, db_user, db_password):
         self.headers = {
             "Content-type": "application/json",
@@ -150,16 +149,16 @@ class CampaignApiClient:
                                           a['aid'])
             self.repository.save_filing_activity(activity)
 
-    def sync_filing_activity_elements(self, session_id, limit):
+    def sync_element_activities(self, session_id, limit):
         offset = 0
         elements_qr = self.fetch_sync_topics(session_id, "element-activities", limit, offset)
-        self.save_filing_activity_elements(elements_qr.results)
+        self.save_element_activities(elements_qr.results)
         while elements_qr.hasNextPage:
             offset = offset + limit
             elements_qr = self.fetch_sync_topics(session_id, "element-activities", limit, offset)
-            self.save_filing_activity_elements(elements_qr.results)
+            self.save_element_activities(elements_qr.results)
 
-    def save_filing_activity_elements(self, filing_elements):
+    def save_element_activities(self, filing_elements):
         for e in filing_elements:
             element = ElementActivityV101(e['id'], e['apiVersion'], e['creationDate'], e['activityId'],
                                           e['activityType'],
@@ -209,12 +208,13 @@ if __name__ == '__main__':
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
     logger.addHandler(file_handler)
-    logger.setLevel(logging.DEBUG)
+    # logger.setLevel(logging.INFO)
 
     with open('../resources/config.json', 'r') as f:
         config = json.load(f)
 
     env = "DEV"
+    logger.setLevel(logging.INFO)
     api_url_arg = config[env]['API_URL']
     api_user_arg = config[env]['API_USER']
     api_password_arg = config[env]['API_PASSWORD']
@@ -256,7 +256,7 @@ if __name__ == '__main__':
     if args.re_sync:
         # Find existing active subscription for provided Subscription Name
         name = args.re_sync[0]
-        logging.info('Re-syncing Filing Activities and Filing Activity Elements using subscription %s', name)
+        logging.info('Re-syncing Filing Activities and Element Activities using subscription %s', name)
         subscriptions = campaign_api_client.repository.fetch_active_subscriptions_by_name(name)
         if len(subscriptions) == 0:
             logging.error(f'No Active SyncSubscription found with Name {name}')
@@ -267,22 +267,27 @@ if __name__ == '__main__':
             # Create SyncSession
             logging.info('Creating new session')
             sync_session_response = campaign_api_client.create_session(subscriptions[0].id)
-            sync_session = sync_session_response.session
-            sess_id = sync_session.id
-            version = sync_session.version
 
-            # Synchronize Filing Activities
-            logging.info('Synchronizing Filing Activities')
-            page_size = 1000
-            campaign_api_client.sync_filing_activities(sess_id, page_size)
+            # TODO - Do I need to complete a Session with response of sync_data_available=false?
+            if sync_session_response.sync_data_available:
+                sync_session = sync_session_response.session
+                sess_id = sync_session.id
+                version = sync_session.version
 
-            # Synchronize Filing Elements
-            logging.info('Synchronizing Filing Activity Elements')
-            campaign_api_client.sync_filing_activity_elements(sess_id, page_size)
+                # Synchronize Filing Activities
+                logging.info('Synchronizing Filing Activities')
+                page_size = 1000
+                campaign_api_client.sync_filing_activities(sess_id, page_size)
 
-            # Complete SyncSession
-            logging.info('Completing session')
-            campaign_api_client.execute_session_command(sess_id, version, SyncSessionCommandType.Complete.name)
+                # Synchronize Filing Elements
+                logging.info('Synchronizing Element Activities')
+                campaign_api_client.sync_element_activities(sess_id, page_size)
+
+                # Complete SyncSession
+                logging.info('Completing session')
+                campaign_api_client.execute_session_command(sess_id, version, SyncSessionCommandType.Complete.name)
+            else:
+                logging.info('No Sync Data Available')
             logging.info('Re-sync complete')
         except Exception as ex:
             # Cancel Session on error
@@ -292,7 +297,7 @@ if __name__ == '__main__':
                                                             SyncSessionCommandType.Cancel.name)
             sys.exit()
     elif args.subscribe_and_sync:
-        logging.info('Subscribe and sync Filing Activities and Filing Activity Elements')
+        logging.info('Subscribe and sync Filing Activities and Element Activities')
         # Retrieve available SyncFeeds
         feed = campaign_api_client.retrieve_sync_feed()
         logging.info("Sync Feed retrieved: %s", feed)
@@ -318,13 +323,13 @@ if __name__ == '__main__':
             campaign_api_client.sync_filing_activities(sess_id, page_size)
 
             # Synchronize Filing Elements
-            logging.info('Synchronizing Filing Activity Elements')
-            campaign_api_client.sync_filing_activity_elements(sess_id, page_size)
+            logging.info('Synchronizing Element Activities')
+            campaign_api_client.sync_element_activities(sess_id, page_size)
 
             # Complete SyncSession
             logging.info('Completing session')
             campaign_api_client.execute_session_command(sess_id, version, SyncSessionCommandType.Complete.name)
-            logging.info('Re-sync complete')
+            logging.info('Sync complete')
         except Exception as ex:
             # Cancel Session on error
             if sync_session is not None:
@@ -402,5 +407,5 @@ if __name__ == '__main__':
             logging.info("Synchronizing Filing Activities")
             campaign_api_client.sync_filing_activities(sess_id, page_size)
         elif topic_name == "activity-elements":
-            logging.info("Synchronizing Filing Activity Elements")
-            campaign_api_client.sync_filing_activity_elements(sess_id, page_size)
+            logging.info("Synchronizing Element Activities")
+            campaign_api_client.sync_element_activities(sess_id, page_size)

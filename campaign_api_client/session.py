@@ -99,8 +99,8 @@ class CreateSyncSessionResponse:
     def __init__(self, sync_data_available, session, description, topic_links):
         self.sync_data_available = sync_data_available
         self.topic_links = topic_links
-        self.session = SyncSession(session['id'], session['version'], session['subscriptionId'], session['identityId'],
-                                   session['status'], session['sequenceRangeBegin'], session['sequenceRangeEnd'],
+        self.session = session if session is None else SyncSession(session['id'], session['version'], session['subscriptionId'],
+                                   session['identityId'], session['status'], session['sequenceRangeBegin'], session['sequenceRangeEnd'],
                                    session['startedAt'], session['endedAt'], session['reads'])
         self.description = description
 

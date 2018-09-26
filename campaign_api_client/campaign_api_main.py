@@ -12,7 +12,7 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
     1) Create a SyncSubscription
     2) Create a SyncSession using the SyncSubscription. This will be the start of the session
     3) Synchronize FilingActivities
-    4) Synchronize FilingActivityElements
+    4) Synchronize ElementActivities
     5) Complete the SyncSession. This will be the end of the session
     6) Cancel the SyncSubscription. SyncSubscriptions are long living, and do not need to be canceled between SyncSessions
 
@@ -60,8 +60,8 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
             api_client.sync_filing_activities(sync_session.id, page_size)
 
             # Synchronize Filing Elements
-            logging.info("Synchronizing Filing Activity Elements")
-            api_client.sync_filing_activity_elements(sync_session.id, page_size)
+            logging.info("Synchronizing Element Activities")
+            api_client.sync_element_activities(sync_session.id, page_size)
 
             # Complete SyncSession
             logging.info("Completing sync session")
@@ -91,12 +91,12 @@ if __name__ == '__main__':
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
     logger.addHandler(file_handler)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     with open('../resources/config.json', 'r') as f:
         config = json.load(f)
 
-    env = "DEV"
+    env = "TEST"
     api_url_arg = config[env]['API_URL']
     api_user_arg = config[env]['API_USER']
     api_password_arg = config[env]['API_PASSWORD']

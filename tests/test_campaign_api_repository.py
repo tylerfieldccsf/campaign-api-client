@@ -35,7 +35,7 @@ class TestCampaignApiRepository(unittest.TestCase):
         self.assertEqual("I come from the land down under", activity.legal_origin)
 
     def test03_filing_activity_element(self):
-        logging.info("Running Filing Element Test...")
+        logging.info("Running Element Activity Test...")
         # Persist a FilingActivity
         self.repository.save_filing_activity_element(element_activity)
 

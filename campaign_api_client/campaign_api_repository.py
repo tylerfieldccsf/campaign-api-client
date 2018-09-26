@@ -111,7 +111,7 @@ class CampaignApiRepository:
             cursor = self.conn.cursor()
             found_element = self.fetch_filing_activity_element(element.id)
             if found_element is None:
-                # Insert new Filing Element
+                # Insert new Element Activity
                 cursor.execute("""INSERT INTO element_activity (id, api_version, creation_date, activity_id, activity_type, 
                 activity_status, publish_sequence, filing_nid, root_filing_nid, specification_key, element_nid,
                 element_type, element_index, root_element_nid, model_json) 
@@ -121,7 +121,7 @@ class CampaignApiRepository:
                                 element.root_filing_nid, element.specification_key, element.element_nid, element.element_type,
                                 element.element_index, element.root_element_nid, element.model_json))
             else:
-                # Update existing Filing Element
+                # Update existing Element Activity
                 cursor.execute("""UPDATE element_activity SET api_version=%s, creation_date=%s, activity_id=%s,
                  activity_type=%s, activity_status=%s, publish_sequence=%s, filing_nid=%s, root_element_nid=%s, 
                  specification_key=%s, element_nid=%s, element_type=%s, element_index=%s, model_json=%s
