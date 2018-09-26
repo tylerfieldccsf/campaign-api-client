@@ -11,10 +11,11 @@ class TestCampaignApiRepository(unittest.TestCase):
         with open('../resources/config.json', 'r') as f:
             config = json.load(f)
 
-        db_host = config['TEST']['HOST']
-        db_name = config['TEST']['DB_NAME']
-        db_user = config['TEST']['DB_USER']
-        db_password = config['TEST']['DB_PASSWORD']
+        env = 'TEST'
+        db_host = config[env]['HOST']
+        db_name = config[env]['DB_NAME']
+        db_user = config[env]['DB_USER']
+        db_password = config[env]['DB_PASSWORD']
         self.repository = CampaignApiRepository(db_host, db_name, db_user, db_password)
         self.assertIsNotNone(self.repository)
 
@@ -31,20 +32,17 @@ class TestCampaignApiRepository(unittest.TestCase):
         activity = self.repository.fetch_filing_activity(filing_activity.id)
         self.assertIsNotNone(activity)
         self.assertEqual("New", activity.activity_type)
-        self.assertEqual("I come from the land down under", activity.origin)
-        self.assertEqual("filing_101", activity.filing_id)
+        self.assertEqual("I come from the land down under", activity.legal_origin)
 
     def test03_filing_activity_element(self):
         logging.info("Running Filing Element Test...")
         # Persist a FilingActivity
-        self.repository.save_filing_activity_element(filing_activity_element)
+        self.repository.save_filing_activity_element(element_activity)
 
         # fetch FilingActivity and assert stuff
-        element = self.repository.fetch_filing_activity_element(filing_activity_element.id)
+        element = self.repository.fetch_filing_activity_element(element_activity.id)
         self.assertIsNotNone(element)
         self.assertEqual("New", element.activity_type)
-        self.assertEqual("I come from the land down under", element.origin)
-        self.assertEqual("filing_101", element.origin_filing_id)
 
     def test04_sync_subscription(self):
         logging.info("Testing Sync Subscription")

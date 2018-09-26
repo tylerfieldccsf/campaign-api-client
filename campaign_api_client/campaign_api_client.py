@@ -14,15 +14,15 @@ from topics import *
 
 class Routes:
     SYSTEM_REPORT = "/system"
-    SYNC_FEED = "/activity/v101/sync/feed"
-    SYNC_SUBSCRIPTIONS = "/activity/v101/sync/subscriptions"
-    SYNC_SESSIONS = "/activity/v101/sync/sessions"
+    SYNC_FEED = "/filing/v101/sync/feed"
+    SYNC_SUBSCRIPTIONS = "/filing/v101/sync/subscriptions"
+    SYNC_SESSIONS = "/filing/v101/sync/sessions"
 
     # First parameter is Session ID. Second parameter is Command Type
-    SYNC_SESSION_COMMAND = "/activity/v101/sync/sessions/%s/commands/%s"
+    SYNC_SESSION_COMMAND = "/filing/v101/sync/sessions/%s/commands/%s"
 
     # First parameter is Subscription ID. Second parameter is Command Type
-    SYNC_SUBSCRIPTION_COMMAND = "/activity/v101/sync/subscriptions/%s/commands/%s"
+    SYNC_SUBSCRIPTION_COMMAND = "/filing/v101/sync/subscriptions/%s/commands/%s"
 
 
 class CampaignApiClient:
@@ -63,11 +63,12 @@ class CampaignApiClient:
         response = self.post_http_request(url, body)
         subscription = response['subscription']
         sync_sub = SyncSubscription(subscription['id'], subscription['version'], subscription['identityId'],
-                                    subscription['feedId'], subscription['name'],subscription['autoComplete'],
+                                    subscription['feedId'], subscription['name'], subscription['autoComplete'],
                                     subscription['status'])
         self.repository.save_sync_subscription(sync_sub)
         logging.debug('SyncSubscription created successfully')
-        return SyncSubscriptionResponse(response['executionId'], response['commandType'], response['subscription'], response['description'])
+        return SyncSubscriptionResponse(response['executionId'], response['commandType'], response['subscription'],
+                                        response['description'])
 
     def execute_subscription_command(self, sub_id, subscription_version, subscription_command_type):
         logging.debug(f'Executing {subscription_command_type} SyncSubscription command')
@@ -104,8 +105,8 @@ class CampaignApiClient:
         }
         response = self.post_http_request(url, body)
         logging.debug(f'SyncSession using SyncSubscription {sub_id} created successfully')
-        return SyncSessionResponse(response['executionId'], response['commandType'], response['session'],
-                                   response['description'])
+        return CreateSyncSessionResponse(response['syncDataAvailable'], response['session'], response['description'],
+                                         response['topicLinks'])
 
     def execute_session_command(self, session_id, session_version, session_command_type):
         logging.debug(f'Executing {session_command_type} SyncSession command')
@@ -114,8 +115,11 @@ class CampaignApiClient:
             'version': session_version
         }
         response = self.post_http_request(url, body)
+        session_response = SyncSessionResponse(response['executionId'], response['commandType'], response['session'],
+                                               response['description'])
+
         logging.debug(f'{session_command_type} SyncSession executed successfully')
-        return SyncSessionResponse(response['executionId'], response['commandType'], response['session'], response['description'])
+        return session_response
 
     def fetch_sync_topics(self, session_id, topic, limit=1000, offset=0):
         logging.debug(f'Fetching {topic} topic: offset={offset}, limit={limit}\n')
@@ -128,36 +132,40 @@ class CampaignApiClient:
     def sync_filing_activities(self, session_id, limit):
         logging.debug('Syncing Filing Activities')
         offset = 0
-        activities_qr = self.fetch_sync_topics(session_id, "activities", limit, offset)
+        activities_qr = self.fetch_sync_topics(session_id, "filing-activities", limit, offset)
         self.save_filing_activities(activities_qr.results)
         while activities_qr.hasNextPage:
             offset = offset + limit
-            activities_qr = self.fetch_sync_topics(session_id, "activities", limit, offset)
+            activities_qr = self.fetch_sync_topics(session_id, "filing-activities", limit, offset)
             self.save_filing_activities(activities_qr.results)
         logging.debug('Filing Activities synchronized successfully')
 
     def save_filing_activities(self, filing_activities):
         for a in filing_activities:
             activity = FilingActivityV101(a['id'], a['version'], a['apiVersion'], a['creationDate'], a['lastUpdate'],
-                                          a['activityType'], a['specificationKey'], a['origin'], a['filingId'],
-                                          a['aid'], a['applyToFilingId'], a['publishSequence'])
+                                          a['activityType'], a['activityStatus'], a['publishSequence'], a['filingNid'],
+                                          a['rootFilingNid'], a['legalOrigin'], a['legalFilingId'],
+                                          a['specificationKey'],
+                                          a['legalFilingDate'], a['startDate'], a['endDate'], a['applyToLegalFilingId'],
+                                          a['aid'])
             self.repository.save_filing_activity(activity)
 
     def sync_filing_activity_elements(self, session_id, limit):
         offset = 0
-        elements_qr = self.fetch_sync_topics(session_id, "activity-elements", limit, offset)
+        elements_qr = self.fetch_sync_topics(session_id, "element-activities", limit, offset)
         self.save_filing_activity_elements(elements_qr.results)
         while elements_qr.hasNextPage:
             offset = offset + limit
-            elements_qr = self.fetch_sync_topics(session_id, "activity-elements", limit, offset)
+            elements_qr = self.fetch_sync_topics(session_id, "element-activities", limit, offset)
             self.save_filing_activity_elements(elements_qr.results)
 
     def save_filing_activity_elements(self, filing_elements):
         for e in filing_elements:
-            element = FilingActivityElementV101(e['id'], e['apiVersion'], e['creationDate'], e['activityId'], e['activityType'],
-                                                e['specificationKey'], e['origin'], e['originFilingId'],
-                                                e['agencyId'], e['applyToFilingId'], e['publishSequence'],
-                                                e['elementType'], e['elementIndex'], json.dumps(e['modelJson']))
+            element = ElementActivityV101(e['id'], e['apiVersion'], e['creationDate'], e['activityId'],
+                                          e['activityType'],
+                                          e['activityStatus'], e['publishSequence'], e['filingNid'], e['rootFilingNid'],
+                                          e['specificationKey'], e['elementNid'], e['elementType'], e['elementIndex'],
+                                          e['rootElementNid'], json.dumps(e['modelJson']))
             self.repository.save_filing_activity_element(element)
 
     def retrieve_sync_feed(self):
@@ -180,14 +188,16 @@ class CampaignApiClient:
         logging.debug(f'Making POST HTTP request to {url}')
         response = requests.post(url, auth=(self.user, self.password), data=json.dumps(body), headers=self.headers)
         if response.status_code not in [200, 201]:
-            raise Exception(f'Error requesting Url: {url}, Response code: {response.status_code}. Error Message: {response.text}')
+            raise Exception(
+                f'Error requesting Url: {url}, Response code: {response.status_code}. Error Message: {response.text}')
         return response.json()
 
     def get_http_request(self, url, params=None):
         logging.debug(f'Making GET HTTP request to {url}')
         response = requests.get(url, params=params, auth=(self.user, self.password), headers=self.headers)
         if response.status_code not in [200, 201]:
-            raise Exception(f'Error requesting Url: {url}, Response code: {response.status_code}. Error Message: {response.text}')
+            raise Exception(
+                f'Error requesting Url: {url}, Response code: {response.status_code}. Error Message: {response.text}')
         return response.json()
 
 
@@ -199,7 +209,7 @@ if __name__ == '__main__':
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
     logger.addHandler(file_handler)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
     with open('../resources/config.json', 'r') as f:
         config = json.load(f)
@@ -217,7 +227,8 @@ if __name__ == '__main__':
                                             db_user_arg, db_password_arg)
 
     parser = argparse.ArgumentParser(description='Process Campaign API Sync Requests')
-    parser.add_argument('--re-sync', nargs=1, metavar='Subscription_Name', help='Find existing active subscription and sync available Feed Topics')
+    parser.add_argument('--re-sync', nargs=1, metavar='Subscription_Name',
+                        help='Find existing active subscription and sync available Feed Topics')
     parser.add_argument('--subscribe-and-sync', nargs=1, metavar='Subscription_Name',
                         help='create a new subscription and Sync available Feed Topics')
     parser.add_argument('--database', nargs=1, metavar='[create or rebuild]',
@@ -226,7 +237,8 @@ if __name__ == '__main__':
                         help='create a new subscription')
     parser.add_argument('--cancel-subscription', nargs=2, metavar=('subscription_id', 'subscription_version'),
                         help='Cancel an existing subscription')
-    parser.add_argument('--session', nargs=3, metavar=('[create, cancel, or complete]', 'session_id', 'session_version'),
+    parser.add_argument('--session', nargs=3,
+                        metavar=('[create, cancel, or complete]', 'session_id', 'session_version'),
                         help='create, cancel, or complete a session')
     parser.add_argument('--sync-topic', nargs=2, metavar=('session_id', 'topic_name'), help='sync a feed topic')
     parser.add_argument('--list-subscriptions', action='store_true', help='retrieve active subscriptions')
@@ -234,6 +246,12 @@ if __name__ == '__main__':
     parser.add_argument('--feed', action='store_true', help='retrieve available feeds')
 
     args = parser.parse_args()
+
+    # First make sure that the Campaign API is ready
+    sys_report = campaign_api_client.fetch_system_report()
+    if not sys_report.is_ready():
+        logging.error("The Campaign API is not ready, current status is %s", sys_report.general_status)
+        sys.exit()
 
     if args.re_sync:
         # Find existing active subscription for provided Subscription Name
@@ -352,7 +370,8 @@ if __name__ == '__main__':
     elif args.cancel_subscription:
         subscription_id = args.cancel_subscription[0]
         version = args.cancel_subscription[1]
-        sub_response = campaign_api_client.execute_subscription_command(subscription_id, version, SyncSubscriptionCommandType.Cancel.name)
+        sub_response = campaign_api_client.execute_subscription_command(subscription_id, version,
+                                                                        SyncSubscriptionCommandType.Cancel.name)
         logging.info("Canceled subscription: %s", sub_response.subscription)
     elif args.session:
         command = args.session[0]
@@ -363,14 +382,15 @@ if __name__ == '__main__':
         elif command == 'cancel':
             sess_id = args.session[1]
             version = args.session[2]
-            sess_response = campaign_api_client.execute_session_command(sess_id, version, SyncSessionCommandType.Cancel.name)
+            sess_response = campaign_api_client.execute_session_command(sess_id, version,
+                                                                        SyncSessionCommandType.Cancel.name)
             logging.info("Session canceled: %s", sess_response.session)
         elif command == 'complete':
             sess_id = args.session[1]
             version = args.session[2]
             try:
                 sess_response = campaign_api_client.execute_session_command(sess_id, version,
-                                                                           SyncSessionCommandType.Complete.name)
+                                                                            SyncSessionCommandType.Complete.name)
                 logging.info("Sync Session complete: %s", sess_response.session)
             except Exception as ex:
                 logging.error("Error attempting to complete session with ID %s: %s", sess_id, ex)

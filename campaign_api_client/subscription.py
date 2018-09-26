@@ -5,7 +5,9 @@ from enum import Enum
 
 class SyncSubscription:
     """
-    A Subscription represents the detailed state and configuration for data synchronization for a specific feed and identity/user.
+    A Subscription represents the detailed state and configuration for data synchronization for a specific feed
+    and identity/user.
+
     :param id_arg: Unique Id of the Subscription
     :param version: Version number of the Subscription, required for command execution and incremented after a successful command
     :param identity_id: Id of the Identity who created/owns the Subscription
@@ -35,6 +37,7 @@ class SyncSubscriptionStatus(Enum):
 class SyncFilter:
     """
     A Filter represents custom selection criteria for a topic within a feed. Defined by the user within the Subscription
+
     :param topic_name: The name of the Topic the Filer applies to
     """
     def __init__(self, topic_name):
@@ -44,6 +47,7 @@ class SyncFilter:
 class SyncSubscriptionCommand:
     """
     SyncSubscriptionCommand is used to create, edit, and cancel SyncSubscriptions
+
     :param id_arg: Unique Id of the Subscription
     :param command_type: provides directive to create, edit, or cancel a subscription
     :param version: Version number of the Subscription, required for command execution and incremented after a successful command
@@ -59,6 +63,7 @@ class SyncSubscriptionCommand:
 class SyncSubscriptionResponse:
     """
         SyncSubscriptionResponse is returned after sending a SyncSubscriptionCommand
+
         :param execution_id: Id of the execution the command was performed withing
         :param command_type: The type of command executed
         :param subscription: Representation of the SyncSubscription after the command was executed

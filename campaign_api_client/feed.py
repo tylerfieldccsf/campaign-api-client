@@ -4,6 +4,7 @@
 class SyncFeed:
     """
     A Feed is a set of logically related data (Topics) which is published and available for synchronization
+
     :param id_arg: Unique Id of the Feed
     :param version: Version number of the Feed, required for command execution and incremented after a successful command
     :param product_type: Product the feed originates from
@@ -35,6 +36,7 @@ class SyncFeed:
 class SyncFeedResponse:
     """
     Response return from execution of a SyncFeed Command
+
     :param execution_id: Id of the execution the command was performed withing
     :param command_type: The type of command executed
     :param feed: Representation of the SyncFeed after the command was executed

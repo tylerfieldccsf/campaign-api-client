@@ -54,7 +54,7 @@ def sync_filings():
     with open('../resources/config.json', 'r') as f:
         config = json.load(f)
 
-    env = "LIVE"
+    env = "PRODUCTION"
     api_url_arg = config[env]['API_URL']
     api_user_arg = config[env]['API_USER']
     api_password_arg = config[env]['API_PASSWORD']

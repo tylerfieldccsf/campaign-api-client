@@ -66,21 +66,27 @@ class CampaignApiRepository:
             if found_activity is None:
                 # Insert new Filing Activity
                 cursor.execute("""INSERT INTO filing_activity (id, version, api_version, creation_date, last_update, 
-                activity_type, specification_key, origin, filing_id, aid, apply_to_filing_id, publish_sequence)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                activity_type, activity_status, publish_sequence, filing_nid, root_filing_nid, legal_origin, legal_filing_id,
+                specification_key, legal_filing_date, start_date, end_date, apply_to_filing_id, aid)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                                (activity.id, activity.version, activity.api_version, activity.creation_date,
-                                activity.last_update, activity.activity_type, activity.specification_key,
-                                activity.origin, activity.filing_id, activity.aid, activity.apply_to_filing_id,
-                                activity.publish_sequence))
+                                activity.last_update, activity.activity_type, activity.activity_status,
+                                activity.publish_sequence, activity.filing_nid, activity.root_filing_nid,
+                                activity.legal_origin, activity.legal_filing_id, activity.specification_key,
+                                activity.legal_filing_date, activity.start_date, activity.end_date,
+                                activity.apply_to_filing_id, activity.aid))
             else:
                 # Update existing Filing Activity
-                cursor.execute("""UPDATE filing_activity SET version=%s, creation_date=%s, last_update=%s, activity_type=%s,
-                                specification_key=%s, origin=%s, filing_id=%s, aid=%s, apply_to_filing_id=%s, publish_sequence=%s
-                                where id=%s""",
-                               (activity.version, activity.creation_date, activity.last_update,
-                                activity.activity_type, activity.specification_key, activity.origin,
-                                activity.filing_id, activity.aid, activity.apply_to_filing_id,
-                                activity.publish_sequence, activity.id))
+                cursor.execute("""UPDATE filing_activity SET version=%s, api_version=%s, creation_date=%s, last_update=%s, 
+                activity_type=%s, activity_status=%s, publish_sequence=%s, filing_nid=%s, root_filing_nid=%s, 
+                legal_origin=%s, legal_filing_id=%s, specification_key=%s, legal_filing_date=%s, start_date=%s,
+                end_date=%s, apply_to_filing_id=%s, aid=%s
+                where id=%s""",
+                               (activity.version, activity.api_version, activity.creation_date, activity.last_update,
+                                activity.activity_type, activity.activity_status, activity.publish_sequence,
+                                activity.filing_nid, activity.root_filing_nid, activity.legal_origin,
+                                activity.legal_filing_id, activity.specification_key, activity.legal_filing_date,
+                                activity.start_date, activity.end_date, activity.apply_to_filing_id, activity.aid, activity.id))
             self.conn.commit()
             cursor.close()
         except Exception as ex:
@@ -95,7 +101,7 @@ class CampaignApiRepository:
             self.conn.commit()
             cursor.close()
             return a if a is None else FilingActivityV101(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9],
-                                                          a[10], a[11])
+                                                          a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17])
         except Exception as ex:
             logging.error(ex)
             self.conn.rollback()
@@ -106,24 +112,24 @@ class CampaignApiRepository:
             found_element = self.fetch_filing_activity_element(element.id)
             if found_element is None:
                 # Insert new Filing Element
-                cursor.execute("""INSERT INTO filing_activity_element (id, api_version, creation_date, activity_id, activity_type, 
-                element_type, origin, origin_filing_id, agency_id, apply_to_filing_id, publish_sequence, element_index, 
-                model_json, specification_key) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                cursor.execute("""INSERT INTO element_activity (id, api_version, creation_date, activity_id, activity_type, 
+                activity_status, publish_sequence, filing_nid, root_filing_nid, specification_key, element_nid,
+                element_type, element_index, root_element_nid, model_json) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                                (element.id, element.api_version, element.creation_date, element.activity_id, element.activity_type,
-                                element.element_type, element.origin, element.origin_filing_id, element.agency_id,
-                                element.apply_to_filing_id, element.publish_sequence, element.element_index,
-                                element.model_json, element.specification_key))
+                                element.activity_status, element.publish_sequence, element.filing_nid,
+                                element.root_filing_nid, element.specification_key, element.element_nid, element.element_type,
+                                element.element_index, element.root_element_nid, element.model_json))
             else:
                 # Update existing Filing Element
-                cursor.execute("""UPDATE filing_activity_element SET api_version=%s, creation_date=%s, activity_id=%s,
-                 activity_type=%s, specification_key=%s, origin=%s, origin_filing_id=%s, agency_id=%s, 
-                 apply_to_filing_id=%s, publish_sequence=%s, element_type=%s, model_json=%s, element_index=%s
+                cursor.execute("""UPDATE element_activity SET api_version=%s, creation_date=%s, activity_id=%s,
+                 activity_type=%s, activity_status=%s, publish_sequence=%s, filing_nid=%s, root_element_nid=%s, 
+                 specification_key=%s, element_nid=%s, element_type=%s, element_index=%s, model_json=%s
                  where id=%s""",
                                (element.api_version, element.creation_date, element.activity_id, element.activity_type,
-                                element.specification_key, element.origin, element.origin_filing_id,
-                                element.agency_id, element.apply_to_filing_id, element.publish_sequence,
-                                element.element_type, element.model_json, element.element_index, element.id))
+                                element.activity_status, element.publish_sequence, element.filing_nid,
+                                element.root_element_nid, element.specification_key, element.element_nid,
+                                element.element_type, element.element_index, element.model_json, element.id))
             self.conn.commit()
             cursor.close()
         except Exception as ex:
@@ -133,12 +139,12 @@ class CampaignApiRepository:
     def fetch_filing_activity_element(self, element_id):
         try:
             cursor = self.conn.cursor()
-            cursor.execute("SELECT * FROM filing_activity_element WHERE id=%s", (str(element_id),))
+            cursor.execute("SELECT * FROM element_activity WHERE id=%s", (str(element_id),))
             a = cursor.fetchone()
             # self.conn.commit()
             cursor.close()
-            return a if a is None else FilingActivityElementV101(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8],
-                                                                 a[9], a[4], a[10], a[11], a[12])
+            return a if a is None else ElementActivityV101(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9],
+                                                           a[4], a[10], a[11], a[12], a[13])
         except Exception as ex:
             logging.error(ex)
             self.conn.rollback()

@@ -9,7 +9,7 @@
         "API_USER": "text@example.com",
         "API_PASSWORD": "password123"
     },
-    "LIVE": {
+    "PRODUCTION": {
         "HOST": "localhost",
         "DB_NAME": "campaign-api-sync",
         "DB_USER": "postgres",
