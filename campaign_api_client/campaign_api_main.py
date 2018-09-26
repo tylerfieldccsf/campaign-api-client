@@ -30,7 +30,7 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
         logging.info("Starting Campaign API synchronization lifecycle")
         api_client = CampaignApiClient(api_url, api_user, api_password, db_host, db_name, db_user, db_password)
 
-        # Build SQL DB
+        # Re-Build SQL DB. This will drop all existing tables and data and re-create the schema
         logging.info("Rebuilding database schema")
         api_client.rebuild_database_schema()
 
@@ -81,6 +81,8 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
             api_client.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Cancel.name)
         logging.error('Error running CampaignApiClient: %s', ex)
         sys.exit()
+    finally:
+        api_client.repository.conn.close()
 
 
 if __name__ == '__main__':

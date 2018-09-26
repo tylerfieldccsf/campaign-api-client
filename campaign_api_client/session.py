@@ -12,13 +12,9 @@ class SyncSession:
     :param version: Version number of the SyncSession, required for command execution and incremented after a successful command
     :param subscription_id: Id of the SyncSubscription this SyncSession is for
     :param identity_id: Id of the Identity/Client
-    :param auto_complete: If true the SyncSession will be assigned status of Completed at the time of creation
     :param status: Status of the Session {Active, Completed, Canceled)
     :param sequence_range_begin: Begin sequence number, when a sequence range is used
     :param sequence_range_end: End sequence number, when a sequence range is used
-    :param date_range_begin: Begin datetime, when a date range is used
-    :param date_range_begin: Begin datetime, when a date range is used
-    :param data_range_end: End datetime, when a date range is used
     :param started_at: Datetime the session was started
     :param ended_at: DateTime the session was ended (may be null if session is still Active)
     :param reads: The list of Reads which requests which have been performed within this session
