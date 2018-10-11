@@ -1,12 +1,10 @@
 CREATE TABLE public.Filing_Activity
 (
-	Id UUID NOT NULL,
-	Version INTEGER NOT NULL,
+	Filing_Activity_Nid UUID NOT NULL,
   Api_Version TEXT NOT NULL,
 	Creation_Date TIMESTAMP WITH TIME ZONE,
   Last_Update TIMESTAMP WITH TIME ZONE,
   Activity_Type TEXT NOT NULL,
-  Activity_Status TEXT,
 	Publish_Sequence BIGINT,
   Filing_Nid UUID NOT NULL,
   Root_Filing_Nid UUID NOT NULL,
@@ -18,7 +16,7 @@ CREATE TABLE public.Filing_Activity
   End_Date TIMESTAMP WITH TIME ZONE,
   Apply_To_Filing_Id TEXT,
   Aid TEXT,
-  CONSTRAINT Pk_Filing_Activity PRIMARY KEY (Id)
+  CONSTRAINT Pk_Filing_Activity PRIMARY KEY (Filing_Activity_Nid)
 )
 WITH (
   OIDS=FALSE
@@ -31,7 +29,7 @@ CREATE INDEX Idx_Filing_Activity_Activity_Type ON Filing_Activity(Activity_Type)
 
 CREATE TABLE public.Element_Activity
 (
-	Id UUID NOT NULL,
+	Element_Activity_Nid UUID NOT NULL,
   Api_Version TEXT NOT NULL,
 	Creation_Date TIMESTAMP WITH TIME ZONE,
   Activity_Id UUID NOT NULL,
@@ -46,7 +44,7 @@ CREATE TABLE public.Element_Activity
   Element_Index TEXT NOT NULL,
   Root_Element_Nid UUID NOT NULL,
   Model_Json jsonb,
-  CONSTRAINT Pk_Element_Activity PRIMARY KEY (Id)
+  CONSTRAINT Pk_Element_Activity PRIMARY KEY (Element_Activity_Nid)
 )
 WITH (
   OIDS=FALSE

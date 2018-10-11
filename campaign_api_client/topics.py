@@ -1,53 +1,102 @@
 #!/usr/bin/python
 
+import json
+
 
 class FilingActivityV101:
-    def __init__(self, id_arg, version, api_version, creation_date, last_update, activity_type, activity_status,
-                 publish_sequence, filing_nid, root_filing_nid, legal_origin, legal_filing_id, specification_key,
-                 legal_filing_date, start_date, end_date, apply_to_filing_id, aid):
-        self.id = id_arg
-        self.version = version
+    def __init__(self, filing_activity_nid, api_version, creation_date, last_update, activity_type, publish_sequence,
+                 filing):
+        self.filing_activity_nid = filing_activity_nid
         self.api_version = api_version
         self.creation_date = creation_date
         self.last_update = last_update
         self.activity_type = activity_type
-        self.activity_status = activity_status
         self.publish_sequence = publish_sequence
-        self.filing_nid = filing_nid
-        self.root_filing_nid = root_filing_nid
-        self.legal_origin = legal_origin
-        self.legal_filing_id = legal_filing_id
-        self.specification_key = specification_key
-        self.legal_filing_date = legal_filing_date
-        self.start_date = start_date
-        self.end_date = end_date
-        self.apply_to_filing_id = apply_to_filing_id
-        self.aid = aid
+        self.filing = FilingV101(filing['filingNid'], filing['apiVersion'], filing['rootFilingNid'],
+                                 filing['filingMeta'], filing['filerMeta'], filing['agencyMeta'])
 
     def __str__(self):
         """Returned when this class is called by a print statement."""
-        return f"ID: {self.id}, Status: {self.activity_status}"
+        return f"Type: {self.activity_type}"
+
+
+class FilingV101:
+    def __init__(self, filing_nid, api_version, root_filing_nid, filing_meta, filer_meta, agency_meta):
+        self.filing_nid = filing_nid
+        self.api_version = api_version
+        self.root_filing_nid = root_filing_nid
+        self.filing_meta = FilingMeta(filing_meta['legalOrigin'], filing_meta['legalFilingId'],
+                                      filing_meta['specificationKey'], filing_meta['formId'],
+                                      filing_meta['legalFilingDate'], filing_meta['startDate'], filing_meta['endDate'],
+                                      filing_meta['reportNumber'], filing_meta['applyToLegalFilingId'])
+        self.filer_meta = FilerMeta(filer_meta['longId'], filer_meta['stringId'], filer_meta['commonName'],
+                                    filer_meta['systemizedName'], filer_meta['status'], filer_meta['phoneList'],
+                                    filer_meta['emailList'], filer_meta['addressList'])
+        self.agency_meta = AgencyMeta(agency_meta['aid'], agency_meta['clientDataspaceId'],
+                                      agency_meta['applicationDataspaceId'])
+
+
+class FilingMeta:
+    def __init__(self, legal_origin, legal_filing_id, specification_key, form_id, legal_filing_date, start_date,
+                 end_date, report_number, apply_to_legal_filing_id):
+        self.legal_origin = legal_origin
+        self.legal_filing_id = legal_filing_id
+        self.specification_key = specification_key
+        self.form_id = form_id
+        self.legal_filing_date = legal_filing_date
+        self.start_date = start_date
+        self.end_date = end_date
+        self.report_number = report_number
+        self.apply_to_legal_filing_id = apply_to_legal_filing_id
+
+
+class FilerMeta:
+    def __init__(self, long_id, string_id, common_name, systemized_name, status, phone_list, email_list, address_list):
+        self.long_id = long_id
+        self.string_id = string_id
+        self.common_name = common_name
+        self.systemized_name = systemized_name
+        self.status = status
+        self.phone_list = phone_list
+        self.email_list = email_list
+        self.address_list = address_list
+
+
+class AgencyMeta:
+    def __init__(self, aid, client_dataspace_id, application_dataspace_id):
+        self.aid = aid
+        self.client_dataspace_id = client_dataspace_id
+        self.application_dataspace_id = application_dataspace_id
 
 
 class ElementActivityV101:
-    def __init__(self, id_arg, api_version, creation_date, activity_id, activity_type, activity_status, publish_sequence,
-                 filing_nid, root_filing_nid, specification_key, element_nid, element_type, element_index,
-                 root_element_nid, model_json):
-        self.id = id_arg
+    def __init__(self, api_version, element_activity_nid, creation_date, filing_activity_nid, activity_type,
+                 publish_sequence, element):
         self.api_version = api_version
+        self.element_activity_nid = element_activity_nid
         self.creation_date = creation_date
-        self.activity_id = activity_id
+        self.filing_activity_nid = filing_activity_nid
         self.activity_type = activity_type
-        self.activity_status = activity_status
         self.publish_sequence = publish_sequence
+        self.element = FilingElementV101(element['apiVersion'], element['elementNid'], element['rootElementNid'],
+                                         element['filingNid'], element['rootFilingNid'], element['specificationKey'],
+                                         element['elementClassification'], element['elementType'],
+                                         element['elementIndex'], json.dumps(element['elementModel']))
+
+
+class FilingElementV101:
+    def __init__(self, api_version, element_nid, root_element_nid, filing_nid, root_filing_nid, specification_key,
+                 element_classification, element_type, element_index, element_model):
+        self.api_version = api_version
+        self.element_nid = element_nid
+        self.root_element_nid = root_element_nid
         self.filing_nid = filing_nid
         self.root_filing_nid = root_filing_nid
         self.specification_key = specification_key
-        self.element_nid = element_nid
+        self.element_classification = element_classification
         self.element_type = element_type
         self.element_index = element_index
-        self.root_element_nid = root_element_nid
-        self.model_json = model_json
+        self.element_model = element_model
 
 
 class SystemReport:

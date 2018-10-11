@@ -4,7 +4,6 @@ import sys
 import argparse
 import requests
 import logging
-import json
 from campaign_api_repository import CampaignApiRepository
 from feed import *
 from subscription import *
@@ -14,15 +13,15 @@ from topics import *
 
 class Routes:
     SYSTEM_REPORT = "/system"
-    SYNC_FEED = "/filing/v101/sync/feed"
-    SYNC_SUBSCRIPTIONS = "/filing/v101/sync/subscriptions"
-    SYNC_SESSIONS = "/filing/v101/sync/sessions"
+    SYNC_FEED = "/global/v101/sync/feeds"
+    SYNC_SUBSCRIPTIONS = "/global/v101/sync/subscriptions"
+    SYNC_SESSIONS = "/global/v101/sync/sessions"
 
     # First parameter is Session ID. Second parameter is Command Type
-    SYNC_SESSION_COMMAND = "/filing/v101/sync/sessions/%s/commands/%s"
+    SYNC_SESSION_COMMAND = "/global/v101/sync/sessions/%s/commands/%s"
 
     # First parameter is Subscription ID. Second parameter is Command Type
-    SYNC_SUBSCRIPTION_COMMAND = "/filing/v101/sync/subscriptions/%s/commands/%s"
+    SYNC_SUBSCRIPTION_COMMAND = "/global/v101/sync/subscriptions/%s/commands/%s"
 
 
 class CampaignApiClient:
@@ -141,12 +140,8 @@ class CampaignApiClient:
 
     def save_filing_activities(self, filing_activities):
         for a in filing_activities:
-            activity = FilingActivityV101(a['id'], a['version'], a['apiVersion'], a['creationDate'], a['lastUpdate'],
-                                          a['activityType'], a['activityStatus'], a['publishSequence'], a['filingNid'],
-                                          a['rootFilingNid'], a['legalOrigin'], a['legalFilingId'],
-                                          a['specificationKey'],
-                                          a['legalFilingDate'], a['startDate'], a['endDate'], a['applyToLegalFilingId'],
-                                          a['aid'])
+            activity = FilingActivityV101(a['filingActivityNid'], a['apiVersion'], a['creationDate'],
+                                          a['lastUpdate'], a['activityType'], a['publishSequence'], a['filing'])
             self.repository.save_filing_activity(activity)
 
     def sync_element_activities(self, session_id, limit):
@@ -160,19 +155,21 @@ class CampaignApiClient:
 
     def save_element_activities(self, filing_elements):
         for e in filing_elements:
-            element = ElementActivityV101(e['id'], e['apiVersion'], e['creationDate'], e['activityId'],
-                                          e['activityType'],
-                                          e['activityStatus'], e['publishSequence'], e['filingNid'], e['rootFilingNid'],
-                                          e['specificationKey'], e['elementNid'], e['elementType'], e['elementIndex'],
-                                          e['rootElementNid'], json.dumps(e['modelJson']))
+            element = ElementActivityV101(e['apiVersion'], e['elementActivityNid'],  e['creationDate'],
+                                          e['filingActivityNid'], e['activityType'], e['publishSequence'],
+                                          e['element'])
             self.repository.save_filing_activity_element(element)
 
-    def retrieve_sync_feed(self):
+    def retrieve_sync_feeds(self):
         logging.debug('Retrieving SyncFeed')
         url = self.base_url + Routes.SYNC_FEED
-        fd = self.get_http_request(url)
-        return SyncFeed(fd['id'], fd['version'], fd['productType'], fd['apiVersion'], fd['name'],
-                        fd['description'], fd['status'], fd['topics'])
+        feed_qr = self.get_http_request(url)
+        fds = []
+        for fd in feed_qr['results']:
+            f = SyncFeed(fd['id'], fd['version'], fd['productType'], fd['apiVersion'], fd['name'],
+                         fd['description'], fd['status'], fd['topics'])
+            fds.append(f)
+        return fds
 
     def create_database_schema(self):
         logging.debug('Creating database schema')
@@ -212,7 +209,7 @@ if __name__ == '__main__':
     with open('../resources/config.json', 'r') as f:
         config = json.load(f)
 
-    env = "TEST"
+    env = "DEV"
     api_url_arg = config[env]['API_URL']
     api_user_arg = config[env]['API_USER']
     api_password_arg = config[env]['API_PASSWORD']
@@ -298,7 +295,8 @@ if __name__ == '__main__':
         elif args.subscribe_and_sync:
             logging.info('Subscribe and sync Filing Activities and Element Activities')
             # Retrieve available SyncFeeds
-            feed = campaign_api_client.retrieve_sync_feed()
+            feeds = campaign_api_client.retrieve_sync_feeds()
+            feed = feeds[0]
             logging.info("Sync Feed retrieved: %s", feed)
 
             # Create SyncSubscription or use existing SyncSubscription with feed specified
@@ -356,7 +354,8 @@ if __name__ == '__main__':
                 campaign_api_client.repository.rebuild_schema()
         elif args.feed:
             logging.info("Retrieving sync feed")
-            sync_feed = campaign_api_client.retrieve_sync_feed()
+            sync_feeds = campaign_api_client.retrieve_sync_feeds()
+            sync_feed = sync_feeds[0]
             logging.info("Sync Feed retrieved: %s", sync_feed)
         elif args.list_subscriptions:
             subs = campaign_api_client.repository.fetch_active_subscriptions()

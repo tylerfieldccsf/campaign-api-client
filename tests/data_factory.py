@@ -4,7 +4,7 @@ from topics import *
 from subscription import *
 
 # Assign variables for FilingActivity and FilingElement
-id_arg = str(uuid.uuid4())
+filing_activity_nid = str(uuid.uuid4())
 version = 0
 api_version = "V101"
 creation_date = datetime.now()
@@ -15,23 +15,37 @@ specification_key = "filing:specification:key"
 legal_origin = "I come from the land down under"
 filing_id = "filing_101"
 aid = "AHW"
-apply_to_filing_id = "SFO-12345"
+apply_to_legal_filing_id = "SFO-12345"
 publish_sequence = 25
 filing_nid = str(uuid.uuid4())
+form_id = str(uuid.uuid4())
 root_filing_nid = str(uuid.uuid4())
 legal_filing_id = "11111"
 legal_filing_date = datetime.now()
 start_date = datetime.now()
 end_date = datetime.now()
+report_number = 1
+client_dataspace_id = str(uuid.uuid4())
+application_dataspace_id = str(uuid.uuid4())
 
 address = "4E3FF207CBE1820E09BF8D061ACECF76C368D009FFEE929DCFECDA7FEF8348A8124586AC1148D9C0F99C9E91C09CC905E58AE01A5C23E6186914F07718ABF404"
-filing_activity = FilingActivityV101(id_arg, version, api_version, creation_date, last_update, activity_type,
-                                     activity_status, publish_sequence, filing_nid, root_filing_nid, legal_origin,
-                                     legal_filing_id, specification_key, legal_filing_date, start_date, end_date,
-                                     apply_to_filing_id, aid)
+
+filing_meta = {'legalOrigin': legal_origin, 'legalFilingId': legal_filing_id, 'specificationKey': specification_key,
+               'formId': form_id, 'legalFilingDate': legal_filing_date, 'startDate': start_date, 'endDate': end_date,
+               'reportNumber': report_number, 'applyToLegalFilingId': apply_to_legal_filing_id}
+filer_meta = {'longId': 12345, 'stringId': '12345', 'commonName': 'John Doe', 'systemizedName': 'CA_123',
+              'status': "active", 'phoneList': '(559)111-0222,(559)111-0223',
+              'emailList': 'john@example.com,doe@example.com', 'addressList': '123 A Street'}
+agency_meta = {'aid': aid, 'clientDataspaceId': client_dataspace_id, 'applicationDataspaceId': application_dataspace_id}
+
+filing = {'filingNid': filing_nid, 'apiVersion': api_version, 'rootFilingNid': root_filing_nid,
+          'filingMeta': filing_meta, 'filerMeta': filer_meta, 'agencyMeta': agency_meta}
+filing_activity = FilingActivityV101(filing_activity_nid, api_version, creation_date, last_update, activity_type,
+                                     publish_sequence, filing)
 
 element_type = "test:element:specification"
 element_index = '0'
+element_classification = "header"
 element_nid = str(uuid.uuid4())
 root_element_nid = str(uuid.uuid4())
 json_body = """{"date": "2015-10-11T00:00:00", "amount": 500.00, "isMemo": false, "splits": [], 
@@ -49,9 +63,13 @@ json_body = """{"date": "2015-10-11T00:00:00", "amount": 500.00, "isMemo": false
  "state": "", "isEmpty": true, "cityStateZip": "", "streetAddress": ""}, "intermediaryEmployer": "", 
  "contributorOccupation": "Chief", "contributorCommitteeId": "", "intermediaryOccupation": "", 
  "intermediaryCommitteeId": "", "contributorIsSelfEmployed": false, "intermediaryIsSelfEmployed": false}"""
-element_activity = ElementActivityV101(str(uuid.uuid4()), api_version, creation_date, id_arg, activity_type,
-                                       activity_status, publish_sequence, filing_nid, root_filing_nid, specification_key,
-                                       element_nid, element_type, element_index, root_element_nid, json_body)
+element = {'apiVersion': api_version, 'elementNid': element_nid, 'rootElementNid': root_element_nid,
+           'filingNid': filing_nid, 'rootFilingNid': root_filing_nid, 'specificationKey': specification_key,
+           'elementClassification': element_classification, 'elementType': element_type,
+           'elementIndex': element_index, 'elementModel': json_body}
+
+element_activity = ElementActivityV101(api_version, str(uuid.uuid4()), creation_date, activity_type,
+                                       activity_status, publish_sequence, element)
 
 identity_id = str(uuid.uuid4())
 feed_id = str(uuid.uuid4())

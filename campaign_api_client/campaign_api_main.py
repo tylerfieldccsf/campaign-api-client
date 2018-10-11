@@ -41,7 +41,8 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
 
             # Retrieve available SyncFeeds
             logging.info("Retrieving available sync feed")
-            feed = api_client.retrieve_sync_feed()
+            feeds = api_client.retrieve_sync_feeds()
+            feed = feeds[0]
 
             # Create SyncSubscription or use existing SyncSubscription with feed specified
             name = "My Campaign API Feed"
@@ -93,12 +94,12 @@ if __name__ == '__main__':
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
     logger.addHandler(file_handler)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
     with open('../resources/config.json', 'r') as f:
         config = json.load(f)
 
-    env = "TEST"
+    env = "DEV"
     api_url_arg = config[env]['API_URL']
     api_user_arg = config[env]['API_USER']
     api_password_arg = config[env]['API_PASSWORD']

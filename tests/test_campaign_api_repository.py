@@ -12,10 +12,10 @@ class TestCampaignApiRepository(unittest.TestCase):
             config = json.load(f)
 
         env = 'TEST'
-        db_host = config[env]['HOST']
-        db_name = config[env]['DB_NAME']
-        db_user = config[env]['DB_USER']
-        db_password = config[env]['DB_PASSWORD']
+        db_host = config[env.upper()]['HOST']
+        db_name = config[env.upper()]['DB_NAME']
+        db_user = config[env.upper()]['DB_USER']
+        db_password = config[env.upper()]['DB_PASSWORD']
         self.repository = CampaignApiRepository(db_host, db_name, db_user, db_password)
         self.assertIsNotNone(self.repository)
 
@@ -29,10 +29,10 @@ class TestCampaignApiRepository(unittest.TestCase):
         self.repository.save_filing_activity(filing_activity)
 
         # fetch FilingActivity and assert stuff
-        activity = self.repository.fetch_filing_activity(filing_activity.id)
+        activity = self.repository.fetch_filing_activity(filing_activity.filing_activity_nid)
         self.assertIsNotNone(activity)
         self.assertEqual("New", activity.activity_type)
-        self.assertEqual("I come from the land down under", activity.legal_origin)
+        self.assertEqual("I come from the land down under", activity.filing.filing_meta.legal_origin)
 
     def test03_filing_activity_element(self):
         logging.info("Running Element Activity Test...")
