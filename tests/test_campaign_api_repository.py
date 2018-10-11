@@ -37,10 +37,10 @@ class TestCampaignApiRepository(unittest.TestCase):
     def test03_filing_activity_element(self):
         logging.info("Running Element Activity Test...")
         # Persist a FilingActivity
-        self.repository.save_filing_activity_element(element_activity)
+        self.repository.save_element_activity(element_activity)
 
         # fetch FilingActivity and assert stuff
-        element = self.repository.fetch_filing_activity_element(element_activity.id)
+        element = self.repository.fetch_element_activity(element_activity.element_activity_nid)
         self.assertIsNotNone(element)
         self.assertEqual("New", element.activity_type)
 

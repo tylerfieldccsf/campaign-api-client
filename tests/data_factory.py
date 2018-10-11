@@ -63,13 +63,14 @@ json_body = """{"date": "2015-10-11T00:00:00", "amount": 500.00, "isMemo": false
  "state": "", "isEmpty": true, "cityStateZip": "", "streetAddress": ""}, "intermediaryEmployer": "", 
  "contributorOccupation": "Chief", "contributorCommitteeId": "", "intermediaryOccupation": "", 
  "intermediaryCommitteeId": "", "contributorIsSelfEmployed": false, "intermediaryIsSelfEmployed": false}"""
-element = {'apiVersion': api_version, 'elementNid': element_nid, 'rootElementNid': root_element_nid,
+
+element = {'elementNid': element_nid, 'rootElementNid': root_element_nid,
            'filingNid': filing_nid, 'rootFilingNid': root_filing_nid, 'specificationKey': specification_key,
            'elementClassification': element_classification, 'elementType': element_type,
            'elementIndex': element_index, 'elementModel': json_body}
 
-element_activity = ElementActivityV101(api_version, str(uuid.uuid4()), creation_date, activity_type,
-                                       activity_status, publish_sequence, element)
+element_activity = ElementActivityV101(str(uuid.uuid4()), api_version, creation_date, filing_activity_nid,
+                                       activity_type, publish_sequence, element)
 
 identity_id = str(uuid.uuid4())
 feed_id = str(uuid.uuid4())

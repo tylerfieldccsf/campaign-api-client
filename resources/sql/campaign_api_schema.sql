@@ -32,25 +32,25 @@ CREATE TABLE public.Element_Activity
 	Element_Activity_Nid UUID NOT NULL,
   Api_Version TEXT NOT NULL,
 	Creation_Date TIMESTAMP WITH TIME ZONE,
-  Activity_Id UUID NOT NULL,
+  Filing_Activity_Nid UUID NOT NULL,
   Activity_Type TEXT NOT NULL,
-  Activity_Status TEXT NOT NULL,
   Publish_Sequence BIGINT,
+  Element_Nid UUID NOT NULL,
+  Root_Element_Nid UUID NOT NULL,
   Filing_Nid UUID NOT NULL,
   Root_Filing_Nid UUID NOT NULL,
   Specification_Key TEXT NOT NULL,
-  Element_Nid UUID NOT NULL,
+  Element_Classification TEXT NOT NULL,
   Element_Type TEXT NOT NULL,
   Element_Index TEXT NOT NULL,
-  Root_Element_Nid UUID NOT NULL,
-  Model_Json jsonb,
+  Element_Model jsonb,
   CONSTRAINT Pk_Element_Activity PRIMARY KEY (Element_Activity_Nid)
 )
 WITH (
   OIDS=FALSE
 );
 ALTER TABLE public.Element_Activity OWNER TO postgres;
-CREATE INDEX Idx_Element_Activity_Activity_Id ON Element_Activity(Activity_Id);
+CREATE INDEX Idx_Element_Activity_Activity_Id ON Element_Activity(Element_Activity_Nid);
 CREATE INDEX Idx_Element_Activity_Element_Type ON Element_Activity(Element_Type);
 
 CREATE TABLE public.Sync_Subscription

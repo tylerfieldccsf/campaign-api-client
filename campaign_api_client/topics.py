@@ -70,24 +70,23 @@ class AgencyMeta:
 
 
 class ElementActivityV101:
-    def __init__(self, api_version, element_activity_nid, creation_date, filing_activity_nid, activity_type,
+    def __init__(self, element_activity_nid, api_version, creation_date, filing_activity_nid, activity_type,
                  publish_sequence, element):
-        self.api_version = api_version
         self.element_activity_nid = element_activity_nid
+        self.api_version = api_version
         self.creation_date = creation_date
         self.filing_activity_nid = filing_activity_nid
         self.activity_type = activity_type
         self.publish_sequence = publish_sequence
-        self.element = FilingElementV101(element['apiVersion'], element['elementNid'], element['rootElementNid'],
-                                         element['filingNid'], element['rootFilingNid'], element['specificationKey'],
-                                         element['elementClassification'], element['elementType'],
-                                         element['elementIndex'], json.dumps(element['elementModel']))
+        self.filing_element = FilingElementV101(element['elementNid'], element['rootElementNid'], element['filingNid'],
+                                                element['rootFilingNid'], element['specificationKey'],
+                                                element['elementClassification'], element['elementType'],
+                                                element['elementIndex'], json.dumps(element['elementModel']))
 
 
 class FilingElementV101:
-    def __init__(self, api_version, element_nid, root_element_nid, filing_nid, root_filing_nid, specification_key,
+    def __init__(self, element_nid, root_element_nid, filing_nid, root_filing_nid, specification_key,
                  element_classification, element_type, element_index, element_model):
-        self.api_version = api_version
         self.element_nid = element_nid
         self.root_element_nid = root_element_nid
         self.filing_nid = filing_nid

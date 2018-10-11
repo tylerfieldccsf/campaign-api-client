@@ -155,10 +155,10 @@ class CampaignApiClient:
 
     def save_element_activities(self, filing_elements):
         for e in filing_elements:
-            element = ElementActivityV101(e['apiVersion'], e['elementActivityNid'],  e['creationDate'],
+            element = ElementActivityV101(e['elementActivityNid'], e['apiVersion'], e['creationDate'],
                                           e['filingActivityNid'], e['activityType'], e['publishSequence'],
                                           e['element'])
-            self.repository.save_filing_activity_element(element)
+            self.repository.save_element_activity(element)
 
     def retrieve_sync_feeds(self):
         logging.debug('Retrieving SyncFeed')
@@ -205,11 +205,11 @@ if __name__ == '__main__':
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
     logger.addHandler(file_handler)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     with open('../resources/config.json', 'r') as f:
         config = json.load(f)
 
-    env = "DEV"
+    env = "DEV-LOCAL"
     api_url_arg = config[env]['API_URL']
     api_user_arg = config[env]['API_USER']
     api_password_arg = config[env]['API_PASSWORD']

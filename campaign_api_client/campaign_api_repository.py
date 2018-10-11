@@ -78,7 +78,7 @@ class CampaignApiRepository:
                                 activity.filing.filing_meta.apply_to_legal_filing_id, activity.filing.agency_meta.aid))
             else:
                 # Update existing Filing Activity
-                cursor.execute("""UPDATE filing_activity SET version=%s, api_version=%s, creation_date=%s, last_update=%s, 
+                cursor.execute("""UPDATE filing_activity SET api_version=%s, creation_date=%s, last_update=%s, 
                 activity_type=%s, publish_sequence=%s, filing_nid=%s, root_filing_nid=%s, 
                 legal_origin=%s, legal_filing_id=%s, specification_key=%s, legal_filing_date=%s, start_date=%s,
                 end_date=%s, apply_to_filing_id=%s, aid=%s
@@ -120,58 +120,56 @@ class CampaignApiRepository:
             logging.error(ex)
             self.conn.rollback()
 
-    # def fetch_filing_activity(self, activity_id):
-    #     try:
-    #         cursor = self.conn.cursor()
-    #         cursor.execute("SELECT * FROM filing_activity WHERE id=%s", (str(activity_id),))
-    #         a = cursor.fetchone()
-    #         self.conn.commit()
-    #         cursor.close()
-    #         return a if a is None else FilingActivityV101(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9],
-    #                                                       a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17])
-    #     except Exception as ex:
-    #         logging.error(ex)
-    #         self.conn.rollback()
-
-    def save_filing_activity_element(self, element):
+    def save_element_activity(self, activity):
         try:
             cursor = self.conn.cursor()
-            found_element = self.fetch_filing_activity_element(element.id)
+            found_element = self.fetch_element_activity(activity.element_activity_nid)
             if found_element is None:
                 # Insert new Element Activity
-                cursor.execute("""INSERT INTO element_activity (id, api_version, creation_date, activity_id, activity_type, 
-                activity_status, publish_sequence, filing_nid, root_filing_nid, specification_key, element_nid,
-                element_type, element_index, root_element_nid, model_json) 
+                cursor.execute("""INSERT INTO element_activity (element_activity_nid, api_version, creation_date, 
+                filing_activity_nid, activity_type, publish_sequence, element_nid, root_element_nid, filing_nid, 
+                root_filing_nid, specification_key, element_classification, element_type, element_index, element_model) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                               (element.id, element.api_version, element.creation_date, element.activity_id, element.activity_type,
-                                element.activity_status, element.publish_sequence, element.filing_nid,
-                                element.root_filing_nid, element.specification_key, element.element_nid, element.element_type,
-                                element.element_index, element.root_element_nid, element.model_json))
+                               (activity.element_activity_nid, activity.api_version, activity.creation_date,
+                                activity.filing_activity_nid, activity.activity_type, activity.publish_sequence,
+                                activity.filing_element.element_nid, activity.filing_element.root_element_nid,
+                                activity.filing_element.filing_nid, activity.filing_element.root_filing_nid,
+                                activity.filing_element.specification_key, activity.filing_element.element_classification,
+                                activity.filing_element.element_type, activity.filing_element.element_index,
+                                activity.filing_element.element_model))
             else:
                 # Update existing Element Activity
-                cursor.execute("""UPDATE element_activity SET api_version=%s, creation_date=%s, activity_id=%s,
-                 activity_type=%s, activity_status=%s, publish_sequence=%s, filing_nid=%s, root_element_nid=%s, 
-                 specification_key=%s, element_nid=%s, element_type=%s, element_index=%s, model_json=%s
-                 where id=%s""",
-                               (element.api_version, element.creation_date, element.activity_id, element.activity_type,
-                                element.activity_status, element.publish_sequence, element.filing_nid,
-                                element.root_element_nid, element.specification_key, element.element_nid,
-                                element.element_type, element.element_index, element.model_json, element.id))
+                cursor.execute("""UPDATE element_activity SET api_version=%s, creation_date=%s, filing_activity_nid=%s,
+                 activity_type=%s, publish_sequence=%s, element_nid=%s, root_element_nid=%s, 
+                 filing_nid=%s, root_filing_nid=%s, specification_key=%s, element_classification=%s, element_type=%s, 
+                 element_index=%s, element_model=%s where element_activity_nid=%s""",
+                               (activity.api_version, activity.creation_date, activity.filing_activity_nid,
+                                activity.activity_type, activity.publish_sequence, activity.filing_element.element_nid,
+                                activity.root_element_nid, activity.filing_element.filing_nid,
+                                activity.filing_element.root_filing_nid, activity.filing_element.specification_key,
+                                activity.filing_element.element_classification, activity.filing_element.element_type,
+                                activity.filing_element.element_index, activity.filing_element.element_model,
+                                activity.element_activity_nid))
             self.conn.commit()
             cursor.close()
         except Exception as ex:
             logging.error(ex)
             self.conn.rollback()
 
-    def fetch_filing_activity_element(self, element_id):
+    def fetch_element_activity(self, element_activity_nid):
         try:
             cursor = self.conn.cursor()
-            cursor.execute("SELECT * FROM element_activity WHERE id=%s", (str(element_id),))
+            cursor.execute("SELECT * FROM element_activity WHERE element_activity_nid=%s", (str(element_activity_nid),))
             a = cursor.fetchone()
-            # self.conn.commit()
+            self.conn.commit()
             cursor.close()
-            return a if a is None else ElementActivityV101(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9],
-                                                           a[4], a[10], a[11], a[12], a[13])
+            if a is not None:
+                filing_element = {'elementNid': a[6], 'rootElementNid': a[7], 'filingNid': a[8],
+                                  'rootFilingNid': a[9], 'specificationKey': a[10], 'elementClassification': a[11],
+                                  'elementType': a[12], 'elementIndex': a[13], 'elementModel': a[14]}
+                return ElementActivityV101(a[0], a[1], a[2], a[3], a[4], a[5], filing_element)
+            else:
+                return None
         except Exception as ex:
             logging.error(ex)
             self.conn.rollback()
