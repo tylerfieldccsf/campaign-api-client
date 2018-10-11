@@ -62,7 +62,11 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
 
             # Synchronize Filing Elements
             logging.info("Synchronizing Element Activities")
-            api_client.sync_element_activities(sync_session.id, page_size)
+            api_client.sync_element_activities(sync_session.id, "element_activities", page_size)
+
+            # Synchronize Transaction Activities
+            logging.info("Synchronizing Transaction Activities")
+            api_client.sync_element_activities(sync_session.id, "transaction_activities", page_size)
 
             # Complete SyncSession
             logging.info("Completing sync session")

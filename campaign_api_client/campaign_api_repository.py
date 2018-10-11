@@ -40,7 +40,6 @@ class CampaignApiRepository:
                     sql_file.close()
             self.conn.commit()
             cursor.close()
-
         except Exception as ex:
             logging.error("Error: %s" % ex)
             self.conn.rollback()
@@ -58,6 +57,9 @@ class CampaignApiRepository:
     def rebuild_schema(self):
         self.drop_schema()
         self.execute_sql_scripts()
+
+    def save_cal_transaction(self, transaction):
+        pass
 
     def save_filing_activity(self, activity):
         try:
@@ -145,7 +147,7 @@ class CampaignApiRepository:
                  element_index=%s, element_model=%s where element_activity_nid=%s""",
                                (activity.api_version, activity.creation_date, activity.filing_activity_nid,
                                 activity.activity_type, activity.publish_sequence, activity.filing_element.element_nid,
-                                activity.root_element_nid, activity.filing_element.filing_nid,
+                                activity.filing_element.root_element_nid, activity.filing_element.filing_nid,
                                 activity.filing_element.root_filing_nid, activity.filing_element.specification_key,
                                 activity.filing_element.element_classification, activity.filing_element.element_type,
                                 activity.filing_element.element_index, activity.filing_element.element_model,

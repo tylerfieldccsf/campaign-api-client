@@ -13,15 +13,15 @@ from topics import *
 
 class Routes:
     SYSTEM_REPORT = "/system"
-    SYNC_FEED = "/global/v101/sync/feeds"
-    SYNC_SUBSCRIPTIONS = "/global/v101/sync/subscriptions"
-    SYNC_SESSIONS = "/global/v101/sync/sessions"
+    SYNC_FEED = "/cal/v101/sync/feeds"
+    SYNC_SUBSCRIPTIONS = "/cal/v101/sync/subscriptions"
+    SYNC_SESSIONS = "/cal/v101/sync/sessions"
 
     # First parameter is Session ID. Second parameter is Command Type
-    SYNC_SESSION_COMMAND = "/global/v101/sync/sessions/%s/commands/%s"
+    SYNC_SESSION_COMMAND = "/cal/v101/sync/sessions/%s/commands/%s"
 
     # First parameter is Subscription ID. Second parameter is Command Type
-    SYNC_SUBSCRIPTION_COMMAND = "/global/v101/sync/subscriptions/%s/commands/%s"
+    SYNC_SUBSCRIPTION_COMMAND = "/cal/v101/sync/subscriptions/%s/commands/%s"
 
 
 class CampaignApiClient:
@@ -43,12 +43,12 @@ class CampaignApiClient:
         system_report = SystemReport(sr['name'], sr['generalStatus'], sr['components'])
         logging.debug('General Status: %s', system_report.general_status)
         logging.debug('System Name: %s', system_report.name)
-        for component in system_report.components:
-            logging.debug('\tComponent Name: %s', component.name)
-            logging.debug('\tComponent Message: %s', component.message)
-            logging.debug('\tComponent status: %s', component.status)
-            logging.debug('\tComponent Build DateTime: %s', component.build_date_time)
-            logging.debug('\tComponent Build Version: %s', component.build_version)
+        for comp in system_report.components:
+            logging.debug('\tComponent Name: %s', comp.name)
+            logging.debug('\tComponent Message: %s', comp.message)
+            logging.debug('\tComponent status: %s', comp.status)
+            logging.debug('\tComponent Build DateTime: %s', comp.build_date_time)
+            logging.debug('\tComponent Build Version: %s', comp.build_version)
         return system_report
 
     def create_subscription(self, feed_name_arg, subscription_name_arg):
@@ -144,13 +144,22 @@ class CampaignApiClient:
                                           a['lastUpdate'], a['activityType'], a['publishSequence'], a['filing'])
             self.repository.save_filing_activity(activity)
 
-    def sync_element_activities(self, session_id, limit):
+    def sync_element_activities(self, session_id, topic, limit):
         offset = 0
-        elements_qr = self.fetch_sync_topics(session_id, "element-activities", limit, offset)
+        elements_qr = self.fetch_sync_topics(session_id, topic, limit, offset)
         self.save_element_activities(elements_qr.results)
         while elements_qr.hasNextPage:
             offset = offset + limit
-            elements_qr = self.fetch_sync_topics(session_id, "element-activities", limit, offset)
+            elements_qr = self.fetch_sync_topics(session_id, topic, limit, offset)
+            self.save_element_activities(elements_qr.results)
+
+    def sync_transaction_activities(self, session_id, limit):
+        offset = 0
+        elements_qr = self.fetch_sync_topics(session_id, "transaction-activities", limit, offset)
+        self.save_element_activities(elements_qr.results)
+        while elements_qr.hasNextPage:
+            offset = offset + limit
+            elements_qr = self.fetch_sync_topics(session_id, "transaction-activities", limit, offset)
             self.save_element_activities(elements_qr.results)
 
     def save_element_activities(self, filing_elements):
@@ -264,7 +273,6 @@ if __name__ == '__main__':
                 logging.info('Creating new session')
                 sync_session_response = campaign_api_client.create_session(subscriptions[0].id)
 
-                # TODO - Do I need to complete a Session with response of sync_data_available=false?
                 if sync_session_response.sync_data_available:
                     sync_session = sync_session_response.session
                     sess_id = sync_session.id
@@ -277,7 +285,11 @@ if __name__ == '__main__':
 
                     # Synchronize Filing Elements
                     logging.info('Synchronizing Element Activities')
-                    campaign_api_client.sync_element_activities(sess_id, page_size)
+                    campaign_api_client.sync_element_activities(sess_id, "element-activities", page_size)
+
+                    # Synchronize Filing Elements
+                    logging.info('Synchronizing Transaction Activities')
+                    campaign_api_client.sync_element_activities(sess_id, "transaction-activities", page_size)
 
                     # Complete SyncSession
                     logging.info('Completing session')
@@ -401,11 +413,14 @@ if __name__ == '__main__':
             sess_id = args.sync_topic[0]
             topic_name = args.sync_topic[1]
             page_size = 1000
-            if topic_name == "activities":
+            if topic_name == "filing-activities":
                 logging.info("Synchronizing Filing Activities")
                 campaign_api_client.sync_filing_activities(sess_id, page_size)
-            elif topic_name == "activity-elements":
+            elif topic_name == "element-activities":
                 logging.info("Synchronizing Element Activities")
+                campaign_api_client.sync_element_activities(sess_id, page_size)
+            elif topic_name == "transaction-activities":
+                logging.info("Synchronizing Transaction Activities")
                 campaign_api_client.sync_element_activities(sess_id, page_size)
     finally:
         # Regardless of any issues during execution, close the database connection
