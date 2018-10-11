@@ -1,7 +1,6 @@
 import unittest
-import json
 import logging
-from campaign_api_repository import CampaignApiRepository
+from campaign_api_client.campaign_api_repository import CampaignApiRepository
 from tests.data_factory import *
 
 

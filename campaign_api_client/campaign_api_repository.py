@@ -3,8 +3,8 @@ import os
 import sys
 import psycopg2
 import logging
-from topics import *
-from subscription import *
+from campaign_api_client.topics import *
+from campaign_api_client.subscription import *
 
 
 class CampaignApiRepository:

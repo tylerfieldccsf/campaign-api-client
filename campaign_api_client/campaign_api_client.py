@@ -4,11 +4,11 @@ import sys
 import argparse
 import requests
 import logging
-from campaign_api_repository import CampaignApiRepository
-from feed import *
-from subscription import *
-from session import *
-from topics import *
+from campaign_api_client.campaign_api_repository import CampaignApiRepository
+from campaign_api_client.feed import *
+from campaign_api_client.subscription import *
+from campaign_api_client.session import *
+from campaign_api_client.topics import *
 
 
 class Routes:

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
-from topics import *
-from subscription import *
+from campaign_api_client.topics import *
+from campaign_api_client.subscription import *
 
 # Assign variables for FilingActivity and FilingElement
 filing_activity_nid = str(uuid.uuid4())
