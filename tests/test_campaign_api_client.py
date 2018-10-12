@@ -1,10 +1,10 @@
 import unittest
 import json
 import logging
-from campaign_api_client import CampaignApiClient
+from campaign_api_http_client import CampaignApiHttpClient
 
 
-class TestCampaignApiClient(unittest.TestCase):
+class TestCampaignApiHttpClient(unittest.TestCase):
 
     def setUp(self):
         with open('../resources/config.json', 'r') as f:
@@ -18,7 +18,7 @@ class TestCampaignApiClient(unittest.TestCase):
         db_name = config[env]['DB_NAME']
         db_user = config[env]['DB_USER']
         db_password = config[env]['DB_PASSWORD']
-        self.api_client = CampaignApiClient(api_url, api_user, api_password, db_host, db_name, db_user, db_password)
+        self.api_client = CampaignApiHttpClient(api_url, api_user, api_password, db_host, db_name, db_user, db_password)
 
     def test02_system_report(self):
         logging.info('Running System Report Test...')

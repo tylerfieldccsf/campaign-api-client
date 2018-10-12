@@ -24,7 +24,7 @@ class Routes:
     SYNC_SUBSCRIPTION_COMMAND = '/cal/v101/sync/subscriptions/%s/commands/%s'
 
 
-class CampaignApiClient:
+class CampaignApiHttpClient:
     """Provides support for synchronizing local database with Campaign API filing data"""
     def __init__(self, base_url, api_user, api_password, db_host, db_name, db_user, db_password):
         self.headers = {
@@ -227,8 +227,8 @@ if __name__ == '__main__':
     db_user_arg = config[env]['DB_USER']
     db_password_arg = config[env]['DB_PASSWORD']
 
-    campaign_api_client = CampaignApiClient(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg,
-                                            db_user_arg, db_password_arg)
+    campaign_api_client = CampaignApiHttpClient(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg,
+                                                db_user_arg, db_password_arg)
 
     parser = argparse.ArgumentParser(description='Process Campaign API Sync Requests')
     parser.add_argument('--re-sync', nargs=1, metavar='Subscription_Name',

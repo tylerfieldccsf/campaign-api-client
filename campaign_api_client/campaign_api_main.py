@@ -3,7 +3,7 @@ import logging
 from subscription import *
 from session import *
 import json
-from campaign_api_client import CampaignApiClient
+from campaign_api_http_client import CampaignApiHttpClient
 
 
 def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password):
@@ -28,7 +28,7 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
     api_client = None
     try:
         logging.info('Starting Campaign API synchronization lifecycle')
-        api_client = CampaignApiClient(api_url, api_user, api_password, db_host, db_name, db_user, db_password)
+        api_client = CampaignApiHttpClient(api_url, api_user, api_password, db_host, db_name, db_user, db_password)
 
         # Re-Build SQL DB. This will drop all existing tables and data and re-create the schema
         logging.info('Rebuilding database schema')
@@ -84,7 +84,7 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
         if sync_session is not None:
             logging.info('Error occurred, canceling sync session')
             api_client.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Cancel.name)
-        logging.error('Error running CampaignApiClient: %s', ex)
+        logging.error('Error running CampaignApiHttpClient: %s', ex)
         sys.exit()
     finally:
         api_client.repository.close_connection()
