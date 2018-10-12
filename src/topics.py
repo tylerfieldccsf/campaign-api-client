@@ -12,8 +12,8 @@ class FilingActivityV101:
         self.last_update = last_update
         self.activity_type = activity_type
         self.publish_sequence = publish_sequence
-        self.filing = FilingV101(filing['filingNid'], filing['apiVersion'], filing['rootFilingNid'],
-                                 filing['filingMeta'], filing['filerMeta'], filing['agencyMeta'])
+        self.filing = FilingV101(filing['filingNid'], filing['rootFilingNid'], filing['filingMeta'],
+                                 filing['filerMeta'], filing['agencyMeta'])
 
     def __str__(self):
         """Returned when this class is called by a print statement."""
@@ -21,9 +21,8 @@ class FilingActivityV101:
 
 
 class FilingV101:
-    def __init__(self, filing_nid, api_version, root_filing_nid, filing_meta, filer_meta, agency_meta):
+    def __init__(self, filing_nid, root_filing_nid, filing_meta, filer_meta, agency_meta):
         self.filing_nid = filing_nid
-        self.api_version = api_version
         self.root_filing_nid = root_filing_nid
         self.filing_meta = FilingMeta(filing_meta['legalOrigin'], filing_meta['legalFilingId'],
                                       filing_meta['specificationKey'], filing_meta['formId'],

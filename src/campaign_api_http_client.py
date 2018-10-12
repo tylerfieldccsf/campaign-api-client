@@ -219,7 +219,7 @@ if __name__ == '__main__':
     with open('../resources/config.json', 'r') as f:
         config = json.load(f)
 
-    env = 'DEV-LOCAL'
+    env = 'TEST'
     api_url_arg = config[env]['API_URL']
     api_user_arg = config[env]['API_USER']
     api_password_arg = config[env]['API_PASSWORD']

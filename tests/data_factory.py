@@ -38,8 +38,8 @@ filer_meta = {'longId': 12345, 'stringId': '12345', 'commonName': 'John Doe', 's
               'emailList': 'john@example.com,doe@example.com', 'addressList': '123 A Street'}
 agency_meta = {'aid': aid, 'clientDataspaceId': client_dataspace_id, 'applicationDataspaceId': application_dataspace_id}
 
-filing = {'filingNid': filing_nid, 'apiVersion': api_version, 'rootFilingNid': root_filing_nid,
-          'filingMeta': filing_meta, 'filerMeta': filer_meta, 'agencyMeta': agency_meta}
+filing = {'filingNid': filing_nid, 'rootFilingNid': root_filing_nid, 'filingMeta': filing_meta,
+          'filerMeta': filer_meta, 'agencyMeta': agency_meta}
 filing_activity = FilingActivityV101(filing_activity_nid, api_version, creation_date, last_update, activity_type,
                                      publish_sequence, filing)
 

@@ -11,11 +11,19 @@ CREATE TABLE public.Filing_Activity
   Legal_Origin TEXT NOT NULL,
   Legal_Filing_Id TEXT NOT NULL,
   Specification_Key TEXT NOT NULL,
+  Form_Id Text,
   Legal_Filing_Date TIMESTAMP WITH TIME ZONE NOT NULL,
   Start_Date TIMESTAMP WITH TIME ZONE,
   End_Date TIMESTAMP WITH TIME ZONE,
+  Report_Number TEXT,
   Apply_To_Filing_Id TEXT,
+  String_Id TEXT,
+  Common_Name TEXT,
+  Systemized_Name TEXT,
+  Status TEXT,
   Aid TEXT,
+  Client_Dataspace_Id TEXT,
+  Application_Dataspace_Id TEXT,
   CONSTRAINT Pk_Filing_Activity PRIMARY KEY (Filing_Activity_Nid)
 )
 WITH (

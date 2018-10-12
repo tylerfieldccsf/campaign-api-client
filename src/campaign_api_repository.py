@@ -58,9 +58,6 @@ class CampaignApiRepository:
         self.drop_schema()
         self.execute_sql_scripts()
 
-    def save_cal_transaction(self, transaction):
-        pass
-
     def save_filing_activity(self, activity):
         try:
             cursor = self.conn.cursor()
@@ -69,28 +66,39 @@ class CampaignApiRepository:
                 # Insert new Filing Activity
                 cursor.execute("""INSERT INTO filing_activity (filing_activity_nid, api_version, creation_date, last_update, 
                 activity_type, publish_sequence, filing_nid, root_filing_nid, legal_origin, legal_filing_id,
-                specification_key, legal_filing_date, start_date, end_date, apply_to_filing_id, aid)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                specification_key, form_id, legal_filing_date, start_date, end_date, report_number, apply_to_filing_id, 
+                string_id, common_name, systemized_name, status, aid, client_dataspace_id, application_dataspace_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                                (activity.filing_activity_nid, activity.api_version, activity.creation_date,
                                 activity.last_update, activity.activity_type,
                                 activity.publish_sequence, activity.filing.filing_nid, activity.filing.root_filing_nid,
                                 activity.filing.filing_meta.legal_origin, activity.filing.filing_meta.legal_filing_id,
-                                activity.filing.filing_meta.specification_key, activity.filing.filing_meta.legal_filing_date,
-                                activity.filing.filing_meta.start_date, activity.filing.filing_meta.end_date,
-                                activity.filing.filing_meta.apply_to_legal_filing_id, activity.filing.agency_meta.aid))
+                                activity.filing.filing_meta.specification_key, activity.filing.filing_meta.form_id,
+                                activity.filing.filing_meta.legal_filing_date, activity.filing.filing_meta.start_date,
+                                activity.filing.filing_meta.end_date, activity.filing.filing_meta.report_number,
+                                activity.filing.filing_meta.apply_to_legal_filing_id, activity.filing.filer_meta.string_id,
+                                activity.filing.filer_meta.common_name, activity.filing.filer_meta.systemized_name,
+                                activity.filing.filer_meta.status, activity.filing.agency_meta.aid,
+                                activity.filing.agency_meta.client_dataspace_id,
+                                activity.filing.agency_meta.application_dataspace_id))
             else:
                 # Update existing Filing Activity
                 cursor.execute("""UPDATE filing_activity SET api_version=%s, creation_date=%s, last_update=%s, 
                 activity_type=%s, publish_sequence=%s, filing_nid=%s, root_filing_nid=%s, 
-                legal_origin=%s, legal_filing_id=%s, specification_key=%s, legal_filing_date=%s, start_date=%s,
-                end_date=%s, apply_to_filing_id=%s, aid=%s
+                legal_origin=%s, legal_filing_id=%s, specification_key=%s, form_id=%s, legal_filing_date=%s, start_date=%s,
+                end_date=%s, report_number=%s, apply_to_filing_id=%s, string_id=%s, common_name=%s, systemized_name=%s,
+                status=%s, aid=%s, client_dataspace_id=%s, application_dataspace_id=%s
                 where filing_activity_nid=%s""",
                                (activity.api_version, activity.creation_date, activity.last_update, activity.activity_type,
                                 activity.publish_sequence, activity.filing.filing_nid, activity.filing.root_filing_nid,
                                 activity.filing.filing_meta.legal_origin, activity.filing.filing_meta.legal_filing_id,
-                                activity.filing.filing_meta.specification_key, activity.filing.filing_meta.legal_filing_date,
-                                activity.filing.filing_meta.start_date, activity.filing.filing_meta.end_date,
-                                activity.filing.filing_meta.apply_to_legal_filing_id, activity.filing.agency_meta.aid,
+                                activity.filing.filing_meta.specification_key, activity.filing.filing_meta.form_id,
+                                activity.filing.filing_meta.legal_filing_date, activity.filing.filing_meta.start_date,
+                                activity.filing.filing_meta.end_date, activity.filing.filing_meta.report_number,
+                                activity.filing.filing_meta.apply_to_legal_filing_id, activity.filing.filer_meta.string_id,
+                                activity.filing.filer_meta.common_name, activity.filing.filer_meta.systemized_name,
+                                activity.filing.filer_meta.status, activity.filing.agency_meta.aid,
+                                activity.filing.agency_meta.client_dataspace_id, activity.filing.agency_meta.application_dataspace_id,
                                 activity.filing_activity_nid))
             self.conn.commit()
             cursor.close()
@@ -107,14 +115,14 @@ class CampaignApiRepository:
             cursor.close()
             if a is not None:
                 # TODO - Add the attributes assigned to None to the DB table
-                filing_meta = {'legalOrigin': a[8], 'legalFilingId': a[9], 'specificationKey': a[10], 'formId': None,
-                               'legalFilingDate': a[11], 'startDate': a[12], 'endDate': a[13], 'reportNumber': None,
-                               'applyToLegalFilingId': a[14]}
-                filer_meta = {'longId': None, 'stringId': None, 'commonName': None, 'systemizedName': None,
-                              'status': None, 'phoneList': None, 'emailList': None, 'addressList': None}
-                agency_meta = {'aid': a[15], 'clientDataspaceId': None, 'applicationDataspaceId': None}
-                filing = {'apiVersion': a[1], 'filingNid': a[6], 'rootFilingNid': a[7],
-                          'filingMeta': filing_meta, 'filerMeta': filer_meta, 'agencyMeta': agency_meta}
+                filing_meta = {'legalOrigin': a[8], 'legalFilingId': a[9], 'specificationKey': a[10], 'formId': a[11],
+                               'legalFilingDate': a[12], 'startDate': a[13], 'endDate': a[14], 'reportNumber': a[15],
+                               'applyToLegalFilingId': a[16]}
+                filer_meta = {'longId': None, 'stringId': a[17], 'commonName': a[18], 'systemizedName': a[19],
+                              'status': a[20], 'phoneList': None, 'emailList': None, 'addressList': None}
+                agency_meta = {'aid': a[21], 'clientDataspaceId': a[22], 'applicationDataspaceId': a[23]}
+                filing = {'filingNid': a[6], 'rootFilingNid': a[7], 'filingMeta': filing_meta, 'filerMeta': filer_meta,
+                          'agencyMeta': agency_meta}
                 return FilingActivityV101(a[0], a[1], a[2], a[3], a[4], a[5], filing)
             else:
                 return None
@@ -217,7 +225,7 @@ class CampaignApiRepository:
             subs = cursor.fetchall()
             self.conn.commit()
             cursor.close()
-            # return s if s is None else SyncSubscription(s[0], s[1], s[2], s[3], s[4], s[5], s[6], None)
+
             subscriptions = []
             for s in subs:
                 subscriptions.append(SyncSubscription(s[0], s[1], s[2], s[3], s[4], s[5], s[6]))
@@ -233,7 +241,7 @@ class CampaignApiRepository:
             subs = cursor.fetchall()
             self.conn.commit()
             cursor.close()
-            # return s if s is None else SyncSubscription(s[0], s[1], s[2], s[3], s[4], s[5], s[6], None)
+
             subscriptions = []
             for s in subs:
                 subscriptions.append(SyncSubscription(s[0], s[1], s[2], s[3], s[4], s[5], s[6]))

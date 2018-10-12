@@ -4,3 +4,4 @@ venv/
 resources/config.json
 *.pyc
 campaign_api_client/logs/
+logs/*.txt
