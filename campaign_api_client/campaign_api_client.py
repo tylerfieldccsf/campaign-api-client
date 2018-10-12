@@ -4,32 +4,32 @@ import sys
 import argparse
 import requests
 import logging
-from campaign_api_client.campaign_api_repository import CampaignApiRepository
-from campaign_api_client.feed import *
-from campaign_api_client.subscription import *
-from campaign_api_client.session import *
-from campaign_api_client.topics import *
+from campaign_api_repository import CampaignApiRepository
+from feed import *
+from subscription import *
+from session import *
+from topics import *
 
 
 class Routes:
-    SYSTEM_REPORT = "/system"
-    SYNC_FEED = "/cal/v101/sync/feeds"
-    SYNC_SUBSCRIPTIONS = "/cal/v101/sync/subscriptions"
-    SYNC_SESSIONS = "/cal/v101/sync/sessions"
+    SYSTEM_REPORT = '/system'
+    SYNC_FEED = '/cal/v101/sync/feeds'
+    SYNC_SUBSCRIPTIONS = '/cal/v101/sync/subscriptions'
+    SYNC_SESSIONS = '/cal/v101/sync/sessions'
 
     # First parameter is Session ID. Second parameter is Command Type
-    SYNC_SESSION_COMMAND = "/cal/v101/sync/sessions/%s/commands/%s"
+    SYNC_SESSION_COMMAND = '/cal/v101/sync/sessions/%s/commands/%s'
 
     # First parameter is Subscription ID. Second parameter is Command Type
-    SYNC_SUBSCRIPTION_COMMAND = "/cal/v101/sync/subscriptions/%s/commands/%s"
+    SYNC_SUBSCRIPTION_COMMAND = '/cal/v101/sync/subscriptions/%s/commands/%s'
 
 
 class CampaignApiClient:
     """Provides support for synchronizing local database with Campaign API filing data"""
     def __init__(self, base_url, api_user, api_password, db_host, db_name, db_user, db_password):
         self.headers = {
-            "Content-type": "application/json",
-            "Accept": "application/json"
+            'Content-type': 'application/json',
+            'Accept': 'application/json'
         }
         self.base_url = base_url
         self.user = api_user
@@ -130,11 +130,11 @@ class CampaignApiClient:
     def sync_filing_activities(self, session_id, limit):
         logging.debug('Syncing Filing Activities')
         offset = 0
-        activities_qr = self.fetch_sync_topics(session_id, "filing-activities", limit, offset)
+        activities_qr = self.fetch_sync_topics(session_id, 'filing-activities', limit, offset)
         self.save_filing_activities(activities_qr.results)
         while activities_qr.hasNextPage:
             offset = offset + limit
-            activities_qr = self.fetch_sync_topics(session_id, "filing-activities", limit, offset)
+            activities_qr = self.fetch_sync_topics(session_id, 'filing-activities', limit, offset)
             self.save_filing_activities(activities_qr.results)
         logging.debug('Filing Activities synchronized successfully')
 
@@ -155,11 +155,11 @@ class CampaignApiClient:
 
     def sync_transaction_activities(self, session_id, limit):
         offset = 0
-        elements_qr = self.fetch_sync_topics(session_id, "transaction-activities", limit, offset)
+        elements_qr = self.fetch_sync_topics(session_id, 'transaction-activities', limit, offset)
         self.save_element_activities(elements_qr.results)
         while elements_qr.hasNextPage:
             offset = offset + limit
-            elements_qr = self.fetch_sync_topics(session_id, "transaction-activities", limit, offset)
+            elements_qr = self.fetch_sync_topics(session_id, 'transaction-activities', limit, offset)
             self.save_element_activities(elements_qr.results)
 
     def save_element_activities(self, filing_elements):
@@ -218,7 +218,7 @@ if __name__ == '__main__':
     with open('../resources/config.json', 'r') as f:
         config = json.load(f)
 
-    env = "DEV-LOCAL"
+    env = 'DEV-LOCAL'
     api_url_arg = config[env]['API_URL']
     api_user_arg = config[env]['API_USER']
     api_password_arg = config[env]['API_PASSWORD']
@@ -255,7 +255,7 @@ if __name__ == '__main__':
     sys_report = campaign_api_client.fetch_system_report()
     try:
         if not sys_report.is_ready():
-            logging.error("The Campaign API is not ready, current status is %s", sys_report.general_status)
+            logging.error('The Campaign API is not ready, current status is %s', sys_report.general_status)
             sys.exit()
 
         if args.re_sync:
@@ -285,11 +285,11 @@ if __name__ == '__main__':
 
                     # Synchronize Filing Elements
                     logging.info('Synchronizing Element Activities')
-                    campaign_api_client.sync_element_activities(sess_id, "element-activities", page_size)
+                    campaign_api_client.sync_element_activities(sess_id, 'element-activities', page_size)
 
                     # Synchronize Filing Elements
                     logging.info('Synchronizing Transaction Activities')
-                    campaign_api_client.sync_element_activities(sess_id, "transaction-activities", page_size)
+                    campaign_api_client.sync_element_activities(sess_id, 'transaction-activities', page_size)
 
                     # Complete SyncSession
                     logging.info('Completing session')
@@ -309,7 +309,7 @@ if __name__ == '__main__':
             # Retrieve available SyncFeeds
             feeds = campaign_api_client.retrieve_sync_feeds()
             feed = feeds[0]
-            logging.info("Sync Feed retrieved: %s", feed)
+            logging.info('Sync Feed retrieved: %s', feed)
 
             # Create SyncSubscription or use existing SyncSubscription with feed specified
             subscription_name = args.subscribe_and_sync[0]
@@ -348,7 +348,7 @@ if __name__ == '__main__':
                 sys.exit()
 
         elif args.system_report:
-            logging.info("Fetching system report")
+            logging.info('Fetching system report')
             report = campaign_api_client.fetch_system_report()
             logging.info('General Status: %s', report.general_status)
             logging.info('System Name: %s', report.name)
@@ -359,16 +359,16 @@ if __name__ == '__main__':
         elif args.database:
             command = args.database[0]
             if command == 'create':
-                logging.info("Creating SQL schema")
+                logging.info('Creating SQL schema')
                 campaign_api_client.repository.execute_sql_scripts()
             elif command == 'rebuild':
-                logging.info("Rebuilding SQL schema")
+                logging.info('Rebuilding SQL schema')
                 campaign_api_client.repository.rebuild_schema()
         elif args.feed:
-            logging.info("Retrieving sync feed")
+            logging.info('Retrieving sync feed')
             sync_feeds = campaign_api_client.retrieve_sync_feeds()
             sync_feed = sync_feeds[0]
-            logging.info("Sync Feed retrieved: %s", sync_feed)
+            logging.info('Sync Feed retrieved: %s', sync_feed)
         elif args.list_subscriptions:
             subs = campaign_api_client.repository.fetch_active_subscriptions()
             # Display subscription information
@@ -379,49 +379,49 @@ if __name__ == '__main__':
         elif args.create_subscription:
             feed_name = args.create_subscription[0]
             subscription_name = args.create_subscription[1]
-            logging.info("Creating new sync subscription with name %s", subscription_name)
+            logging.info('Creating new sync subscription with name %s', subscription_name)
             sub_response = campaign_api_client.create_subscription(feed_name, subscription_name)
-            logging.info("New sync subscription created: %s", sub_response.subscription)
+            logging.info('New sync subscription created: %s', sub_response.subscription)
         elif args.cancel_subscription:
             subscription_id = args.cancel_subscription[0]
             version = args.cancel_subscription[1]
             sub_response = campaign_api_client.execute_subscription_command(subscription_id, version,
                                                                             SyncSubscriptionCommandType.Cancel.name)
-            logging.info("Canceled subscription: %s", sub_response.subscription)
+            logging.info('Canceled subscription: %s', sub_response.subscription)
         elif args.session:
             command = args.session[0]
             if command == 'create':
                 subscription_id = args.session[1]
                 session_response = campaign_api_client.create_session(subscription_id)
-                logging.info("New session created: %s", session_response.session)
+                logging.info('New session created: %s', session_response.session)
             elif command == 'cancel':
                 sess_id = args.session[1]
                 version = args.session[2]
                 sess_response = campaign_api_client.execute_session_command(sess_id, version,
                                                                             SyncSessionCommandType.Cancel.name)
-                logging.info("Session canceled: %s", sess_response.session)
+                logging.info('Session canceled: %s', sess_response.session)
             elif command == 'complete':
                 sess_id = args.session[1]
                 version = args.session[2]
                 try:
                     sess_response = campaign_api_client.execute_session_command(sess_id, version,
                                                                                 SyncSessionCommandType.Complete.name)
-                    logging.info("Sync Session complete: %s", sess_response.session)
+                    logging.info('Sync Session complete: %s', sess_response.session)
                 except Exception as ex:
-                    logging.error("Error attempting to complete session with ID %s: %s", sess_id, ex)
+                    logging.error('Error attempting to complete session with ID %s: %s', sess_id, ex)
         elif args.sync_topic:
             sess_id = args.sync_topic[0]
             topic_name = args.sync_topic[1]
             page_size = 1000
-            if topic_name == "filing-activities":
-                logging.info("Synchronizing Filing Activities")
+            if topic_name == 'filing-activities':
+                logging.info('Synchronizing Filing Activities')
                 campaign_api_client.sync_filing_activities(sess_id, page_size)
-            elif topic_name == "element-activities":
-                logging.info("Synchronizing Element Activities")
-                campaign_api_client.sync_element_activities(sess_id, page_size)
-            elif topic_name == "transaction-activities":
-                logging.info("Synchronizing Transaction Activities")
-                campaign_api_client.sync_element_activities(sess_id, page_size)
+            elif topic_name == 'element-activities':
+                logging.info('Synchronizing Element Activities')
+                campaign_api_client.sync_element_activities(sess_id, 'element-activities', page_size)
+            elif topic_name == 'transaction-activities':
+                logging.info('Synchronizing Transaction Activities')
+                campaign_api_client.sync_element_activities(sess_id, 'transaction-activities', page_size)
     finally:
         # Regardless of any issues during execution, close the database connection
         campaign_api_client.repository.conn.close()

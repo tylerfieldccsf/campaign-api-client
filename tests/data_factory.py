@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
-from campaign_api_client.topics import *
-from campaign_api_client.subscription import *
+from topics import *
+from subscription import *
 
 # Assign variables for FilingActivity and FilingElement
 filing_activity_nid = str(uuid.uuid4())
@@ -74,5 +74,5 @@ element_activity = ElementActivityV101(str(uuid.uuid4()), api_version, creation_
 
 identity_id = str(uuid.uuid4())
 feed_id = str(uuid.uuid4())
-active_sync_subscription = SyncSubscription(str(uuid.uuid4()), version, identity_id, feed_id, "Test Feed", False, "Active")
-canceled_sync_subscription = SyncSubscription(str(uuid.uuid4()), 1, identity_id, feed_id, "Test Feed", False, "canceled")
+active_sync_subscription = SyncSubscription(str(uuid.uuid4()), version, identity_id, feed_id, 'Test Feed', False, 'Active')
+canceled_sync_subscription = SyncSubscription(str(uuid.uuid4()), 1, identity_id, feed_id, 'Test Feed', False, 'canceled')

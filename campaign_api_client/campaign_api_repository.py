@@ -3,8 +3,8 @@ import os
 import sys
 import psycopg2
 import logging
-from campaign_api_client.topics import *
-from campaign_api_client.subscription import *
+from topics import *
+from subscription import *
 
 
 class CampaignApiRepository:
@@ -15,12 +15,12 @@ class CampaignApiRepository:
         try:
             # get a connection, if a connect cannot be made an exception will be raised here
             self.conn = psycopg2.connect(conn_string)
-            logging.debug("Connected to database successfully")
+            logging.debug('Connected to database successfully')
         except psycopg2.Error as err:
-            logging.error("Database Error Connecting: %s" % err)
+            logging.error('Database Error Connecting: %s' % err)
             sys.exit()
         except Exception as ex:
-            logging.error("Unexpected error connecting to the database: %s" % ex)
+            logging.error('Unexpected error connecting to the database: %s' % ex)
             sys.exit()
 
     def close_connection(self):
@@ -30,18 +30,18 @@ class CampaignApiRepository:
         try:
             cursor = self.conn.cursor()
 
-            logging.debug("Executing SQL scripts")
-            for filename in os.listdir("../resources/sql"):
-                if filename.endswith(".sql"):
-                    logging.debug("Executing %s", filename)
-                    sql_file = open("../resources/sql/" + filename, "r")
+            logging.debug('Executing SQL scripts')
+            for filename in os.listdir('../resources/sql'):
+                if filename.endswith('.sql'):
+                    logging.debug('Executing %s', filename)
+                    sql_file = open('../resources/sql/' + filename, 'r')
                     sql = sql_file.read()
                     cursor.execute(sql)
                     sql_file.close()
             self.conn.commit()
             cursor.close()
         except Exception as ex:
-            logging.error("Error: %s" % ex)
+            logging.error('Error: %s' % ex)
             self.conn.rollback()
 
     def drop_schema(self):
