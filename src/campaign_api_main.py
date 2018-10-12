@@ -53,30 +53,32 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
             logging.info('Creating sync session')
             subscription = subscription_response.subscription
             sync_session_response = api_client.create_session(subscription.id)
+            if sync_session_response.sync_data_available:
+                # Synchronize Filing Activities
+                logging.info('Synchronizing Filing Activities')
+                sync_session = sync_session_response.session
+                page_size = 10
+                api_client.sync_filing_activities(sync_session.id, page_size)
 
-            # Synchronize Filing Activities
-            logging.info('Synchronizing Filing Activities')
-            sync_session = sync_session_response.session
-            page_size = 10
-            api_client.sync_filing_activities(sync_session.id, page_size)
+                # Synchronize Filing Elements
+                logging.info('Synchronizing Element Activities')
+                api_client.sync_element_activities(sync_session.id, 'element-activities', page_size)
 
-            # Synchronize Filing Elements
-            logging.info('Synchronizing Element Activities')
-            api_client.sync_element_activities(sync_session.id, 'element-activities', page_size)
+                # Synchronize Transaction Activities
+                logging.info('Synchronizing Transaction Activities')
+                api_client.sync_element_activities(sync_session.id, 'transaction-activities', page_size)
 
-            # Synchronize Transaction Activities
-            logging.info('Synchronizing Transaction Activities')
-            api_client.sync_element_activities(sync_session.id, 'transaction-activities', page_size)
+                # Complete SyncSession
+                logging.info('Completing sync session')
+                api_client.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Complete.name)
 
-            # Complete SyncSession
-            logging.info('Completing sync session')
-            api_client.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Complete.name)
+                # Cancel the subscription
+                logging.info('Canceling subscription')
+                api_client.execute_subscription_command(subscription.id, subscription.version, SyncSubscriptionCommandType.Cancel.name)
 
-            # Cancel the subscription
-            logging.info('Canceling subscription')
-            api_client.execute_subscription_command(subscription.id, subscription.version, SyncSubscriptionCommandType.Cancel.name)
-
-            logging.info('Synchronization lifecycle complete')
+                logging.info('Synchronization lifecycle complete')
+            else:
+                logging.info('No Sync Data Available. Nothing to retrieve')
         else:
             logging.info('The Campaign API system status is %s and is not Ready', sys_report.general_status)
     except Exception as ex:

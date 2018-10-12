@@ -323,23 +323,26 @@ if __name__ == '__main__':
                 # Create SyncSession
                 logging.info('Creating new session')
                 sync_session_response = campaign_api_client.create_session(subscription.id)
-                sync_session = sync_session_response.session
-                sess_id = sync_session.id
-                version = sync_session.version
+                if sync_session_response.sync_data_available:
+                    sync_session = sync_session_response.session
+                    sess_id = sync_session.id
+                    version = sync_session.version
 
-                # Synchronize Filing Activities
-                logging.info('Synchronizing Filing Activities')
-                page_size = 1000
-                campaign_api_client.sync_filing_activities(sess_id, page_size)
+                    # Synchronize Filing Activities
+                    logging.info('Synchronizing Filing Activities')
+                    page_size = 1000
+                    campaign_api_client.sync_filing_activities(sess_id, page_size)
 
-                # Synchronize Filing Elements
-                logging.info('Synchronizing Element Activities')
-                campaign_api_client.sync_element_activities(sess_id, page_size)
+                    # Synchronize Filing Elements
+                    logging.info('Synchronizing Element Activities')
+                    campaign_api_client.sync_element_activities(sess_id, page_size)
 
-                # Complete SyncSession
-                logging.info('Completing session')
-                campaign_api_client.execute_session_command(sess_id, version, SyncSessionCommandType.Complete.name)
-                logging.info('Sync complete')
+                    # Complete SyncSession
+                    logging.info('Completing session')
+                    campaign_api_client.execute_session_command(sess_id, version, SyncSessionCommandType.Complete.name)
+                    logging.info('Sync complete')
+                else:
+                    logging.info('The Campaign API system status is %s and is not Ready', sys_report.general_status)
             except Exception as ex:
                 # Cancel Session on error
                 if sync_session is not None:
