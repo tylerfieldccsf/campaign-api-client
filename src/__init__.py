@@ -10,7 +10,7 @@ Campaign API Sync is a library.
 
 usage:
 
-#    >>> import campaign_api_client
+#    >>> import src
 #    >>> r = requests.get('https://www.python.org')
 #    >>> r.status_code
 #    200
@@ -35,7 +35,7 @@ usage:
 :license:
 """
 
-# from campaign_api_client import *
+# from src import *
 # import logging
 # import json
 

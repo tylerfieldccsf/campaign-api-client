@@ -62,11 +62,11 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
 
             # Synchronize Filing Elements
             logging.info('Synchronizing Element Activities')
-            api_client.sync_element_activities(sync_session.id, 'element_activities', page_size)
+            api_client.sync_element_activities(sync_session.id, 'element-activities', page_size)
 
             # Synchronize Transaction Activities
             logging.info('Synchronizing Transaction Activities')
-            api_client.sync_element_activities(sync_session.id, 'transaction_activities', page_size)
+            api_client.sync_element_activities(sync_session.id, 'transaction-activities', page_size)
 
             # Complete SyncSession
             logging.info('Completing sync session')
@@ -93,7 +93,7 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
 if __name__ == '__main__':
     logger = logging.getLogger()
     stream_handler = logging.StreamHandler()
-    file_handler = logging.FileHandler('./logs/log.txt', 'a')
+    file_handler = logging.FileHandler('../logs/log.txt', 'a')
     formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
     stream_handler.setFormatter(formatter)
     file_handler.setFormatter(formatter)

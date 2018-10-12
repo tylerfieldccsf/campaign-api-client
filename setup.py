@@ -1,6 +1,6 @@
 from setuptools import setup
 
-setup(name='campaign_api_client',
+setup(name='Campaign API Client',
       version='0.1',
       description='Campaign API Client Library',
       url='https://github.com/NetFile/campaign-api-client',

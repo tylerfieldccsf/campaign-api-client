@@ -69,7 +69,7 @@ class CampaignApiHttpClient:
                                         response['description'])
 
     def execute_subscription_command(self, sub_id, subscription_version, subscription_command_type):
-        logging.debug(f'Executing {subscription_command_type} SyncSubscription command')
+        logging.debug(f"Executing {subscription_command_type} SyncSubscription command")
         ext = Routes.SYNC_SUBSCRIPTION_COMMAND % (sub_id, subscription_command_type)
         url = self.base_url + ext
         body = {
@@ -209,9 +209,10 @@ class CampaignApiHttpClient:
 if __name__ == '__main__':
     logger = logging.getLogger()
     stream_handler = logging.StreamHandler()
-    file_handler = logging.FileHandler('./logs/log.txt', 'a')
+    file_handler = logging.FileHandler('../logs/log.txt', 'a')
     formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
     stream_handler.setFormatter(formatter)
+    file_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
     logger.addHandler(file_handler)
     logger.setLevel(logging.DEBUG)
