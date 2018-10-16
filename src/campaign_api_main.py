@@ -1,9 +1,7 @@
 import sys
-import logging
-from subscription import *
-from session import *
-import json
+
 from campaign_api_http_client import CampaignApiHttpClient
+from src import *
 
 
 def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password):
@@ -27,81 +25,81 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
     sync_session = None
     api_client = None
     try:
-        logging.info('Starting Campaign API synchronization lifecycle')
+        logger.info('Starting Campaign API synchronization lifecycle')
         api_client = CampaignApiHttpClient(api_url, api_user, api_password, db_host, db_name, db_user, db_password)
 
         # Re-Build SQL DB. This will drop all existing tables and data and re-create the schema
-        logging.info('Rebuilding database schema')
+        logger.info('Rebuilding database schema')
         api_client.rebuild_database_schema()
 
         # Verify the system is ready
         sys_report = api_client.fetch_system_report()
         if sys_report.is_ready():
-            logging.info('Campaign API Sync is Ready')
+            logger.info('Campaign API Sync is Ready')
 
             # Retrieve available SyncFeeds
-            logging.info('Retrieving available sync feed')
+            logger.info('Retrieving available sync feed')
             feeds = api_client.retrieve_sync_feeds()
             feed = feeds[0]
 
             # Create SyncSubscription or use existing SyncSubscription with feed specified
             name = 'My Campaign API Feed'
-            logging.info('Creating new subscription with name "%s"', name)
+            logger.info('Creating new subscription with name "%s"', name)
             subscription_response = api_client.create_subscription(feed.name, name)
 
             # Create SyncSession
-            logging.info('Creating sync session')
+            logger.info('Creating sync session')
             subscription = subscription_response.subscription
             sync_session_response = api_client.create_session(subscription.id)
             if sync_session_response.sync_data_available:
                 # Synchronize Filing Activities
-                logging.info('Synchronizing Filing Activities')
+                logger.info('Synchronizing Filing Activities')
                 sync_session = sync_session_response.session
                 page_size = 10
                 api_client.sync_filing_activities(sync_session.id, page_size)
 
                 # Synchronize Filing Elements
-                logging.info('Synchronizing Element Activities')
+                logger.info('Synchronizing Element Activities')
                 api_client.sync_element_activities(sync_session.id, 'element-activities', page_size)
 
                 # Synchronize Transaction Activities
-                logging.info('Synchronizing Transaction Activities')
+                logger.info('Synchronizing Transaction Activities')
                 api_client.sync_element_activities(sync_session.id, 'transaction-activities', page_size)
 
                 # Complete SyncSession
-                logging.info('Completing sync session')
+                logger.info('Completing sync session')
                 api_client.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Complete.name)
 
                 # Cancel the subscription
-                logging.info('Canceling subscription')
+                logger.info('Canceling subscription')
                 api_client.execute_subscription_command(subscription.id, subscription.version, SyncSubscriptionCommandType.Cancel.name)
 
-                logging.info('Synchronization lifecycle complete')
+                logger.info('Synchronization lifecycle complete')
             else:
-                logging.info('No Sync Data Available. Nothing to retrieve')
+                logger.info('No Sync Data Available. Nothing to retrieve')
         else:
-            logging.info('The Campaign API system status is %s and is not Ready', sys_report.general_status)
+            logger.info('The Campaign API system status is %s and is not Ready', sys_report.general_status)
     except Exception as ex:
         # Cancel Session on error
         if sync_session is not None:
-            logging.info('Error occurred, canceling sync session')
+            logger.info('Error occurred, canceling sync session')
             api_client.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Cancel.name)
-        logging.error('Error running CampaignApiHttpClient: %s', ex)
+        logger.error('Error running CampaignApiHttpClient: %s', ex)
         sys.exit()
     finally:
         api_client.repository.close_connection()
 
 
 if __name__ == '__main__':
-    logger = logging.getLogger()
-    stream_handler = logging.StreamHandler()
-    file_handler = logging.FileHandler('../logs/log.txt', 'a')
-    formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
-    stream_handler.setFormatter(formatter)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(stream_handler)
-    logger.addHandler(file_handler)
-    logger.setLevel(logging.DEBUG)
+    # logger = logging.getLogger()
+    # stream_handler = logging.StreamHandler()
+    # file_handler = logging.FileHandler('../logs/log.txt', 'a')
+    # formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    # stream_handler.setFormatter(formatter)
+    # file_handler.setFormatter(formatter)
+    # logger.addHandler(stream_handler)
+    # logger.addHandler(file_handler)
+    # logger.setLevel(logging.DEBUG)
 
     with open('../resources/config.json', 'r') as f:
         config = json.load(f)
