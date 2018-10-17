@@ -1,20 +1,11 @@
 import unittest
-import logging
-from campaign_api_repository import CampaignApiRepository
 from tests.data_factory import *
+from src import *
 
 
 class TestCampaignApiRepository(unittest.TestCase):
 
     def setUp(self):
-        with open('../resources/config.json', 'r') as f:
-            config = json.load(f)
-
-        env = 'TEST'
-        db_host = config[env.upper()]['HOST']
-        db_name = config[env.upper()]['DB_NAME']
-        db_user = config[env.upper()]['DB_USER']
-        db_password = config[env.upper()]['DB_PASSWORD']
         self.repository = CampaignApiRepository(db_host, db_name, db_user, db_password)
         self.assertIsNotNone(self.repository)
 

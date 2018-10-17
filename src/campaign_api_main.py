@@ -1,10 +1,9 @@
 import sys
-
 from campaign_api_http_client import CampaignApiHttpClient
 from src import *
 
 
-def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password):
+def main():
     """
     This demonstrates the complete lifecycle of the Campaign API sync process.
     1) Create a SyncSubscription
@@ -13,14 +12,6 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
     4) Synchronize ElementActivities
     5) Complete the SyncSession. This will be the end of the session
     6) Cancel the SyncSubscription. SyncSubscriptions are long living, and do not need to be canceled between SyncSessions
-
-    :param api_url: Base URL of the API. Example - "https://netfile.com/filing/api"
-    :param api_user: Username credential to authenticate against the Campaign API
-    :param api_password: Password credential to authenticate against the Campaign API
-    :param db_host: Name of host to connect to PostgreSQL database
-    :param db_name: Postgres database to connect to
-    :param db_user: Postgres database username
-    :param db_password: Postgres database password
     """
     sync_session = None
     api_client = None
@@ -91,26 +82,4 @@ def main(api_url, api_user, api_password, db_host, db_name, db_user, db_password
 
 
 if __name__ == '__main__':
-    # logger = logging.getLogger()
-    # stream_handler = logging.StreamHandler()
-    # file_handler = logging.FileHandler('../logs/log.txt', 'a')
-    # formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
-    # stream_handler.setFormatter(formatter)
-    # file_handler.setFormatter(formatter)
-    # logger.addHandler(stream_handler)
-    # logger.addHandler(file_handler)
-    # logger.setLevel(logging.DEBUG)
-
-    with open('../resources/config.json', 'r') as f:
-        config = json.load(f)
-
-    env = 'TEST'
-    api_url_arg = config[env]['API_URL']
-    api_user_arg = config[env]['API_USER']
-    api_password_arg = config[env]['API_PASSWORD']
-    db_host_arg = config[env]['HOST']
-    db_name_arg = config[env]['DB_NAME']
-    db_user_arg = config[env]['DB_USER']
-    db_password_arg = config[env]['DB_PASSWORD']
-
-    main(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg, db_user_arg, db_password_arg)
+    main()

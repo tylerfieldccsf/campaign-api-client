@@ -143,6 +143,25 @@ class SystemComponentInfo:
         self.message = message
 
 
+class FilingQuery:
+    def __init__(self, origin=None, filing_id=None, filing_specification=None, limit=1000, offset=0):
+        self.origin = origin
+        self.filing_id = filing_id
+        self.filing_specification = filing_specification
+        self.limit = limit
+        self.offset = offset
+
+
+class FilingElementQuery:
+    def __init__(self, origin=None, filing_id=None, element_classification=None, element_type=None, limit=1000, offset=0):
+        self.origin = origin
+        self.filing_id = filing_id
+        self.element_classification = element_classification
+        self.element_type = element_type
+        self.limit = limit
+        self.offset = offset
+
+
 class ListQueryResult:
     def __init__(self, results, offset, has_previous_page, has_next_page, limit, total_count, empty, count, page_number):
         self.results = results

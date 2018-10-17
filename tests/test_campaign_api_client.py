@@ -1,23 +1,12 @@
 import unittest
-import json
-import logging
+
+from src import *
 from campaign_api_http_client import CampaignApiHttpClient
 
 
 class TestCampaignApiHttpClient(unittest.TestCase):
 
     def setUp(self):
-        with open('../resources/config.json', 'r') as f:
-            config = json.load(f)
-
-        env = 'TEST'
-        api_url = config[env]['API_URL']
-        api_user = config[env]['API_USER']
-        api_password = config[env]['API_PASSWORD']
-        db_host = config[env]['HOST']
-        db_name = config[env]['DB_NAME']
-        db_user = config[env]['DB_USER']
-        db_password = config[env]['DB_PASSWORD']
         self.api_client = CampaignApiHttpClient(api_url, api_user, api_password, db_host, db_name, db_user, db_password)
 
     def test02_system_report(self):
@@ -28,6 +17,27 @@ class TestCampaignApiHttpClient(unittest.TestCase):
         self.assertEqual('FilingExt', system_report.name)
         self.assertTrue(system_report.components.__len__() > 0)
         logging.info('System Report Test Complete...')
+
+    def test03_search_filing(self):
+        # Query for filing
+        # query = FilingQuery('NetFileAdmin', None, 'CAL:Fppc460:2.01')
+        query = FilingQuery()
+        response = self.api_client.query_filings(query)
+        self.assertIsNotNone(response)
+
+        # Fetch a filing by ID
+        root_filing_nid = '79935105-da2d-4934-b363-bab537076c68'
+        response = self.api_client.fetch_filings(root_filing_nid)
+        print(response)
+
+    def test04_search_element(self):
+        # Query for filing element
+        query = FilingElementQuery()
+        response = self.api_client.query_filing_elements(query)
+        self.assertIsNotNone(response)
+
+    def test05_fetch_efile_content(self):
+        pass
 
 
 if __name__ == '__main__':

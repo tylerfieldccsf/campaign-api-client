@@ -51,24 +51,37 @@ formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
+
+with open('../resources/config.json', 'r') as f:
+    config = json.load(f)
+
+# Variables below are set in resources/config.json file
+# TEST or PRODUCTION
+env = 'TEST'
+
+# Base URL of the API. Example - "https://netfile.com/filing/api"
+api_url = config[env]['API_URL']
+
+# Username credential to authenticate against the Campaign API
+api_user = config[env]['API_USER']
+
+# Password credential to authenticate against the Campaign API
+api_password = config[env]['API_PASSWORD']
+
+# Name of host to connect to PostgreSQL database
+db_host = config[env]['HOST']
+
+# Postgres database to connect to
+db_name = config[env]['DB_NAME']
+
+# Postgres database username
+db_user = config[env]['DB_USER']
+
+# Postgres database password
+db_password = config[env]['DB_PASSWORD']
 
 #
 # def sync_filings():
 #     """This will allow us to run CampaignApiHttpClient"""
 #     logger.debug('Filings sync has started...')
-#
-#     with open('../resources/config.json', 'r') as f:
-#         config = json.load(f)
-#
-#     env = "PRODUCTION"
-#     api_url_arg = config[env]['API_URL']
-#     api_user_arg = config[env]['API_USER']
-#     api_password_arg = config[env]['API_PASSWORD']
-#     db_host_arg = config[env]['HOST']
-#     db_name_arg = config[env]['DB_NAME']
-#     db_user_arg = config[env]['DB_USER']
-#     db_password_arg = config[env]['DB_PASSWORD']
-#     api_client = CampaignApiHttpClient(api_url_arg, api_user_arg, api_password_arg, db_host_arg, db_name_arg, db_user_arg,
-#                                    db_password_arg)
-#     api_client.main()
