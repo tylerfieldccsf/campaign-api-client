@@ -51,7 +51,7 @@ formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 with open('../resources/config.json', 'r') as f:
     config = json.load(f)
@@ -80,6 +80,14 @@ db_user = config[env]['DB_USER']
 
 # Postgres database password
 db_password = config[env]['DB_PASSWORD']
+
+
+# Unit Test values
+db_host_unit_test = 'localhost'
+db_name_unit_test = config['TEST']['DB_NAME']
+db_user_unit_test = config['TEST']['DB_USER']
+db_password_unit_test = config['TEST']['DB_PASSWORD']
+
 
 #
 # def sync_filings():

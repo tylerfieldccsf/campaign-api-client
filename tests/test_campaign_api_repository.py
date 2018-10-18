@@ -6,7 +6,7 @@ from src import *
 class TestCampaignApiRepository(unittest.TestCase):
 
     def setUp(self):
-        self.repository = CampaignApiRepository(db_host, db_name, db_user, db_password)
+        self.repository = CampaignApiRepository(db_host_unit_test, db_name_unit_test, db_user_unit_test, db_password_unit_test)
         self.assertIsNotNone(self.repository)
 
     def tearDown(self):
