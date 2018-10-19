@@ -18,8 +18,9 @@ class Routes:
     # First parameter is Subscription ID. Second parameter is Command Type
     SYNC_SUBSCRIPTION_COMMAND = '/cal/v101/sync/subscriptions/%s/commands/%s'
 
-    # First parameter is the Filing ID
+    # First parameter is the Root Filing NID
     FETCH_FILING = '/global/v101/filings/%s'
+    FETCH_EFILE_CONTENT = '/global/v101/filings/%s/contents/efile'
     QUERY_FILINGS = '/global/v101/filings'
 
     # First parameter is the Element ID
@@ -200,12 +201,12 @@ class CampaignApiHttpClient:
 
     def fetch_filing_element(self, element_nid):
         logger.debug(f'Fetching filing {element_nid}')
-        url = self.base_url + Routes.FETCH_FILING % element_nid
+        url = self.base_url + Routes.FETCH_FILING_ELEMENTS % element_nid
         return self.get_http_request(url)
 
     def query_filing_elements(self, query):
         logger.debug('Querying Filing Elements')
-        url = self.base_url + Routes.QUERY_FILINGS
+        url = self.base_url + Routes.QUERY_FILING_ELEMENTS
         params = {'Origin': query.origin, 'FilingId': query.filing_id,
                   'ElementClassification': query.element_classification, 'ElementType': query.element_type,
                   'limit': query.limit, 'offset': query.offset}
@@ -214,8 +215,16 @@ class CampaignApiHttpClient:
         }
         return self.get_http_request(url, params, headers)
 
-    def fetch_efile_content(self):
-        pass
+    def fetch_efile_content(self, root_filing_nid):
+        logger.debug('Fetching Efile Content')
+        url = self.base_url + Routes.FETCH_EFILE_CONTENT % root_filing_nid
+        logger.debug(f'Making GET HTTP request to {url}')
+        response = requests.get(url, params=None, auth=(self.user, self.password), headers=self.headers)
+        if response.status_code not in [200, 201]:
+            raise Exception(
+                f'Error requesting Url: {url}, Response code: {response.status_code}. Error Message: {response.text}')
+        file_content = response.text
+        return file_content
 
     def create_database_schema(self):
         logger.debug('Creating database schema')

@@ -40,7 +40,7 @@ from campaign_api_repository import CampaignApiRepository
 from feed import *
 from subscription import *
 from session import *
-from topics import *
+from filing import *
 import logging
 
 
@@ -62,25 +62,18 @@ env = 'TEST'
 
 # Base URL of the API. Example - "https://netfile.com/filing/api"
 api_url = config[env]['API_URL']
-
 # Username credential to authenticate against the Campaign API
 api_user = config[env]['API_USER']
-
 # Password credential to authenticate against the Campaign API
 api_password = config[env]['API_PASSWORD']
-
 # Name of host to connect to PostgreSQL database
 db_host = config[env]['HOST']
-
 # Postgres database to connect to
 db_name = config[env]['DB_NAME']
-
 # Postgres database username
 db_user = config[env]['DB_USER']
-
 # Postgres database password
 db_password = config[env]['DB_PASSWORD']
-
 
 # Unit Test values
 db_host_unit_test = 'localhost'
@@ -88,6 +81,7 @@ db_name_unit_test = config['TEST']['DB_NAME']
 db_user_unit_test = config['TEST']['DB_USER']
 db_password_unit_test = config['TEST']['DB_PASSWORD']
 
+# TODO - Maybe add Debug specific logging configuration here and use that in Unit tests so that we don't get test stuff written to our non-test log file
 
 #
 # def sync_filings():

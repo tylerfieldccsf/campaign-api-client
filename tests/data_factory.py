@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from topics import *
+from filing import *
 from subscription import *
 
 # Assign variables for FilingActivity and FilingElement

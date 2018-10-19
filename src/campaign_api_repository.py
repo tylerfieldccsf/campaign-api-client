@@ -3,7 +3,7 @@ import os
 import sys
 import psycopg2
 import logging
-from topics import *
+from filing import *
 from subscription import *
 
 
