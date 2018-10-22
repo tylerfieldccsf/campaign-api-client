@@ -8,8 +8,9 @@ def main():
     This demonstrates the complete lifecycle of the Campaign API sync process.
     1) Create a SyncSubscription
     2) Create a SyncSession using the SyncSubscription. This will be the start of the session
-    3) Synchronize FilingActivities
-    4) Synchronize ElementActivities
+    3) Synchronize Filing Activities
+    4) Synchronize Element Activities
+    5) Synchronize Transaction Activities
     5) Complete the SyncSession. This will be the end of the session
     6) Cancel the SyncSubscription. SyncSubscriptions are long living, and do not need to be canceled between SyncSessions
     """

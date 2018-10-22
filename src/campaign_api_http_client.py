@@ -1,9 +1,14 @@
 #!/usr/bin/python
 
-import sys
 import argparse
 import requests
+
+import sys
+sys.path.append('../')
 from src import *
+
+
+logger = logging.getLogger(__name__)
 
 
 class Routes:
@@ -255,8 +260,6 @@ class CampaignApiHttpClient:
 
 
 if __name__ == '__main__':
-    campaign_api_client = CampaignApiHttpClient(api_url, api_user, api_password, db_host, db_name, db_user, db_password)
-
     parser = argparse.ArgumentParser(description='Process Campaign API Sync Requests')
     parser.add_argument('--re-sync', nargs=1, metavar='Subscription_Name',
                         help='Find existing active subscription and sync available Feed Topics')
@@ -279,6 +282,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # First make sure that the Campaign API is ready
+    campaign_api_client = CampaignApiHttpClient(api_url, api_user, api_password, db_host, db_name, db_user, db_password)
     sys_report = campaign_api_client.fetch_system_report()
     try:
         if not sys_report.is_ready():
@@ -454,4 +458,4 @@ if __name__ == '__main__':
                 campaign_api_client.sync_element_activities(sess_id, 'transaction-activities', page_size)
     finally:
         # Regardless of any issues during execution, close the database connection
-        campaign_api_client.repository.conn.close()
+        campaign_api_client.repository.close_connection()

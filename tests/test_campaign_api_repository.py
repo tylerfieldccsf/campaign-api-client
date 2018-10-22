@@ -1,6 +1,12 @@
 import unittest
+
+import sys
+sys.path.append('../')
+
 from tests.data_factory import *
 from src import *
+
+logger = logging.getLogger(__name__)
 
 
 class TestCampaignApiRepository(unittest.TestCase):

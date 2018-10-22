@@ -1,10 +1,15 @@
 #!/usr/bin/python
+
+
 import os
-import sys
 import psycopg2
 import logging
+import sys
+sys.path.append('../')
 from filing import *
 from subscription import *
+
+logger = logging.getLogger(__name__)
 
 
 class CampaignApiRepository:

@@ -3,10 +3,8 @@
 #       detected by interpreter and executed. Not sure if I should use this or not, but the
 #       requests project does, so it's worth looking into
 """
-Campaign API Sync Library
+Campaign API Sync Client
 ~~~~~~~~~~~~~~~~~~~~~
-
-Campaign API Sync is a library.
 
 usage:
 
@@ -35,12 +33,17 @@ usage:
 :license:
 """
 
-import json
+import sys
+sys.path.append('../src')
+sys.path.append('../')
+sys.path.append('.')
+
 from campaign_api_repository import CampaignApiRepository
 from feed import *
 from subscription import *
 from session import *
 from filing import *
+import json
 import logging
 
 
@@ -49,6 +52,7 @@ stream_handler = logging.StreamHandler()
 file_handler = logging.FileHandler('../logs/log.txt', 'a')
 formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
 stream_handler.setFormatter(formatter)
+file_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 logger.setLevel(logging.DEBUG)
@@ -81,9 +85,6 @@ db_name_unit_test = config['TEST']['DB_NAME']
 db_user_unit_test = config['TEST']['DB_USER']
 db_password_unit_test = config['TEST']['DB_PASSWORD']
 
-# TODO - Maybe add Debug specific logging configuration here and use that in Unit tests so that we don't get test stuff written to our non-test log file
-
-#
 # def sync_filings():
 #     """This will allow us to run CampaignApiHttpClient"""
 #     logger.debug('Filings sync has started...')

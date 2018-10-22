@@ -1,7 +1,12 @@
 import unittest
 
+import sys
+sys.path.append('../')
+
 from src import *
 from campaign_api_http_client import CampaignApiHttpClient
+
+logger = logging.getLogger(__name__)
 
 
 class TestCampaignApiHttpClient(unittest.TestCase):
@@ -10,13 +15,13 @@ class TestCampaignApiHttpClient(unittest.TestCase):
         self.api_client = CampaignApiHttpClient(api_url, api_user, api_password, db_host, db_name, db_user, db_password)
 
     def test02_system_report(self):
-        logging.info('Running System Report Test...')
+        logger.info('Running System Report Test...')
         system_report = self.api_client.fetch_system_report()
         self.assertIsNotNone(system_report)
         self.assertEqual('Ready', system_report.general_status)
         self.assertEqual('FilingExt', system_report.name)
         self.assertTrue(system_report.components.__len__() > 0)
-        logging.info('System Report Test Complete...')
+        logger.info('System Report Test Complete...')
 
     def test03_search_filing(self):
         # Query filings using no criteria
