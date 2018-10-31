@@ -60,7 +60,7 @@ def main():
 
                 # Complete SyncSession
                 logger.info('Completing sync session')
-                api_client.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Complete.name)
+                api_client.execute_session_command(sync_session.id, SyncSessionCommandType.Complete.name)
 
                 # Cancel the subscription
                 logger.info('Canceling subscription')
@@ -75,7 +75,7 @@ def main():
         # Cancel Session on error
         if sync_session is not None:
             logger.info('Error occurred, canceling sync session')
-            api_client.execute_session_command(sync_session.id, sync_session.version, SyncSessionCommandType.Cancel.name)
+            api_client.execute_session_command(sync_session.id, SyncSessionCommandType.Cancel.name)
         logger.error('Error running CampaignApiHttpClient: %s', ex)
         sys.exit()
     finally:

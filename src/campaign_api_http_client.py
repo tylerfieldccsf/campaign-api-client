@@ -115,13 +115,10 @@ class CampaignApiHttpClient:
         return CreateSyncSessionResponse(response['syncDataAvailable'], response['session'], response['description'],
                                          response['topicLinks'])
 
-    def execute_session_command(self, session_id, session_version, session_command_type):
+    def execute_session_command(self, session_id, session_command_type):
         logger.debug(f'Executing {session_command_type} SyncSession command')
         url = self.base_url + Routes.SYNC_SESSION_COMMAND % (session_id, session_command_type)
-        body = {
-            'version': session_version
-        }
-        response = self.post_http_request(url, body)
+        response = self.post_http_request(url)
         session_response = SyncSessionResponse(response['executionId'], response['commandType'], response['session'],
                                                response['description'])
 
@@ -307,7 +304,6 @@ if __name__ == '__main__':
                 if sync_session_response.sync_data_available:
                     sync_session = sync_session_response.session
                     sess_id = sync_session.id
-                    version = sync_session.version
 
                     # Synchronize Filing Activities
                     logger.info('Synchronizing Filing Activities')
@@ -324,7 +320,7 @@ if __name__ == '__main__':
 
                     # Complete SyncSession
                     logger.info('Completing session')
-                    campaign_api_client.execute_session_command(sess_id, version, SyncSessionCommandType.Complete.name)
+                    campaign_api_client.execute_session_command(sess_id, SyncSessionCommandType.Complete.name)
                 else:
                     logger.info('No Sync Data Available')
                 logger.info('Re-sync complete')
@@ -332,8 +328,7 @@ if __name__ == '__main__':
                 # Cancel Session on error
                 logger.error('Error attempting to re-sync with subscription %s: %s', subscriptions[0].name, ex)
                 if sync_session is not None:
-                    campaign_api_client.execute_session_command(sync_session.id, sync_session.version,
-                                                                SyncSessionCommandType.Cancel.name)
+                    campaign_api_client.execute_session_command(sync_session.id, SyncSessionCommandType.Cancel.name)
                 sys.exit()
         elif args.subscribe_and_sync:
             logger.info('Subscribe and sync Filing Activities and Element Activities')
@@ -356,7 +351,6 @@ if __name__ == '__main__':
                 if sync_session_response.sync_data_available:
                     sync_session = sync_session_response.session
                     sess_id = sync_session.id
-                    version = sync_session.version
 
                     # Synchronize Filing Activities
                     logger.info('Synchronizing Filing Activities')
@@ -369,7 +363,7 @@ if __name__ == '__main__':
 
                     # Complete SyncSession
                     logger.info('Completing session')
-                    campaign_api_client.execute_session_command(sess_id, version, SyncSessionCommandType.Complete.name)
+                    campaign_api_client.execute_session_command(sess_id, SyncSessionCommandType.Complete.name)
                     logger.info('Sync complete')
                 else:
                     logger.info('The Campaign API system status is %s and is not Ready', sys_report.general_status)
@@ -431,15 +425,13 @@ if __name__ == '__main__':
             elif command == 'cancel':
                 sess_id = args.session[1]
                 version = args.session[2]
-                sess_response = campaign_api_client.execute_session_command(sess_id, version,
-                                                                            SyncSessionCommandType.Cancel.name)
+                sess_response = campaign_api_client.execute_session_command(sess_id, SyncSessionCommandType.Cancel.name)
                 logger.info('Session canceled: %s', sess_response.session)
             elif command == 'complete':
                 sess_id = args.session[1]
                 version = args.session[2]
                 try:
-                    sess_response = campaign_api_client.execute_session_command(sess_id, version,
-                                                                                SyncSessionCommandType.Complete.name)
+                    sess_response = campaign_api_client.execute_session_command(sess_id, SyncSessionCommandType.Complete.name)
                     logger.info('Sync Session complete: %s', sess_response.session)
                 except Exception as ex:
                     logger.error('Error attempting to complete session with ID %s: %s', sess_id, ex)
