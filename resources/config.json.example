@@ -6,16 +6,16 @@
         "DB_USER": "postgres",
         "DB_PASSWORD": "password123",
         "API_URL": "http://localhost:12061/api",
-        "API_USER": "text@example.com",
+        "API_KEY": "text@example.com",
         "API_PASSWORD": "password123"
     },
-    "PRODUCTION": {
+    "LIVE": {
         "HOST": "localhost",
         "DB_NAME": "campaign-api-sync",
         "DB_USER": "postgres",
         "DB_PASSWORD": "password123",
         "API_URL": "https://netfile.com/filing/api",
-        "API_USER": "text@example.com",
+        "API_KEY": "text@example.com",
         "API_PASSWORD": "password123"
     }
 }

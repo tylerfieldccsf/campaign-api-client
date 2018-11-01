@@ -1,18 +1,15 @@
 import unittest
-
-import sys
-sys.path.append('../')
-
+from filing import *
 from src import *
-from campaign_api_http_client import CampaignApiHttpClient
+from campaign_api_client import CampaignApiClient
 
 logger = logging.getLogger(__name__)
 
 
-class TestCampaignApiHttpClient(unittest.TestCase):
+class TestCampaignApiClient(unittest.TestCase):
 
     def setUp(self):
-        self.api_client = CampaignApiHttpClient(api_url, api_user, api_password, db_host, db_name, db_user, db_password)
+        self.api_client = CampaignApiClient(api_url, api_key, api_password, db_host, db_name, db_user, db_password)
 
     def test02_system_report(self):
         logger.info('Running System Report Test...')

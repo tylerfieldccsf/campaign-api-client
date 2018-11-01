@@ -3,10 +3,13 @@
 import argparse
 import requests
 
+from campaign_api_repository import *
+from feed import SyncFeed
+from session import *
+
 import sys
 sys.path.append('../')
 from src import *
-
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +28,7 @@ class Routes:
 
     # First parameter is the Root Filing NID
     FETCH_FILING = '/global/v101/filings/%s'
-    FETCH_EFILE_CONTENT = '/global/v101/filings/%s/contents/efile'
+    FETCH_EFILE_CONTENT = '/global/v101/filings/%s/contents/efiling'
     QUERY_FILINGS = '/global/v101/filings'
 
     # First parameter is the Element ID
@@ -33,15 +36,15 @@ class Routes:
     QUERY_FILING_ELEMENTS = '/global/v101/filing-elements'
 
 
-class CampaignApiHttpClient:
+class CampaignApiClient:
     """Provides support for synchronizing local database with Campaign API filing data"""
-    def __init__(self, base_url, api_user, api_password, db_host, db_name, db_user, db_password):
+    def __init__(self, base_url, api_key, api_password, db_host, db_name, db_user, db_password):
         self.headers = {
             'Content-type': 'application/json',
             'Accept': 'application/json'
         }
         self.base_url = base_url
-        self.user = api_user
+        self.user = api_key
         self.password = api_password
         self.repository = CampaignApiRepository(db_host, db_name, db_user, db_password)
 
@@ -221,7 +224,7 @@ class CampaignApiHttpClient:
         logger.debug('Fetching Efile Content')
         url = self.base_url + Routes.FETCH_EFILE_CONTENT % root_filing_nid
         logger.debug(f'Making GET HTTP request to {url}')
-        response = requests.get(url, params=None, auth=(self.user, self.password), headers=self.headers)
+        response = requests.get(url, params={'contentType': 'efile'}, auth=(self.user, self.password), headers=self.headers)
         if response.status_code not in [200, 201]:
             raise Exception(
                 f'Error requesting Url: {url}, Response code: {response.status_code}. Error Message: {response.text}')
@@ -278,14 +281,24 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    if args.database:
+        command = args.database[0]
+        repository = CampaignApiRepository(db_host, db_name, db_user, db_password)
+        if command == 'create':
+            logger.info('Creating SQL schema')
+            repository.execute_sql_scripts()
+        elif command == 'rebuild':
+            logger.info('Rebuilding SQL schema')
+            repository.rebuild_schema()
+        sys.exit()
+
     # First make sure that the Campaign API is ready
-    campaign_api_client = CampaignApiHttpClient(api_url, api_user, api_password, db_host, db_name, db_user, db_password)
+    campaign_api_client = CampaignApiClient(api_url, api_key, api_password, db_host, db_name, db_user, db_password)
     sys_report = campaign_api_client.fetch_system_report()
     try:
         if not sys_report.is_ready():
             logger.error('The Campaign API is not ready, current status is %s', sys_report.general_status)
             sys.exit()
-
         if args.re_sync:
             # Find existing active subscription for provided Subscription Name
             name = args.re_sync[0]
@@ -374,7 +387,6 @@ if __name__ == '__main__':
                                                                 SyncSessionCommandType.Cancel.name)
                 logger.error('Error attempting to subscribe and sync with subscription %s: %s', subscription.name, ex)
                 sys.exit()
-
         elif args.system_report:
             logger.info('Fetching system report')
             report = campaign_api_client.fetch_system_report()
@@ -384,14 +396,6 @@ if __name__ == '__main__':
                 logger.info('\tComponent Name: %s', component.name)
                 logger.info('\tComponent Message: %s', component.message)
                 logger.info('\tComponent status: %s', component.status)
-        elif args.database:
-            command = args.database[0]
-            if command == 'create':
-                logger.info('Creating SQL schema')
-                campaign_api_client.repository.execute_sql_scripts()
-            elif command == 'rebuild':
-                logger.info('Rebuilding SQL schema')
-                campaign_api_client.repository.rebuild_schema()
         elif args.feed:
             logger.info('Retrieving sync feed')
             sync_feeds = campaign_api_client.retrieve_sync_feeds()

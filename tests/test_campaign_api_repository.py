@@ -1,4 +1,5 @@
 import unittest
+from campaign_api_repository import CampaignApiRepository
 
 import sys
 sys.path.append('../')

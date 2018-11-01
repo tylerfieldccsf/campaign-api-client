@@ -1,11 +1,9 @@
 #!/usr/bin/python
 
-
 import os
 import psycopg2
 import logging
 import sys
-sys.path.append('../')
 from filing import *
 from subscription import *
 
