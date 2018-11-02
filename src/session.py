@@ -79,7 +79,6 @@ class SyncSessionCommand:
         self.id = id_arg
         self.command_type = command_type
         self.description = description
-        self.version = version
         self.permission_name = permission_name
 
 

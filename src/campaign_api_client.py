@@ -26,14 +26,17 @@ class Routes:
     # First parameter is Subscription ID. Second parameter is Command Type
     SYNC_SUBSCRIPTION_COMMAND = '/cal/v101/sync/subscriptions/%s/commands/%s'
 
+    # Parameter is the Subscription ID
+    FETCH_SUBSCRIPTION = '/cal/v101/sync/subscriptions/%s'
+
     # First parameter is the Root Filing NID
-    FETCH_FILING = '/global/v101/filings/%s'
-    FETCH_EFILE_CONTENT = '/global/v101/filings/%s/contents/efiling'
-    QUERY_FILINGS = '/global/v101/filings'
+    FETCH_FILING = '/cal/v101/filings/%s'
+    FETCH_EFILE_CONTENT = '/cal/v101/filings/%s/contents/efiling'
+    QUERY_FILINGS = '/cal/v101/filings'
 
     # First parameter is the Element ID
-    FETCH_FILING_ELEMENTS = '/global/v101/filing-elements/%s'
-    QUERY_FILING_ELEMENTS = '/global/v101/filing-elements'
+    FETCH_FILING_ELEMENTS = '/cal/v101/filing-elements/%s'
+    QUERY_FILING_ELEMENTS = '/cal/v101/filing-elements'
 
 
 class CampaignApiClient:
@@ -80,13 +83,23 @@ class CampaignApiClient:
         return SyncSubscriptionResponse(response['executionId'], response['commandType'], response['subscription'],
                                         response['description'])
 
-    def execute_subscription_command(self, sub_id, subscription_version, subscription_command_type):
+    def fetch_subcription(self, sub_id):
+        logger.debug(f"Fetching SyncSubscription with id: {sub_id}")
+        ext = Routes.SYNC_SUBSCRIPTION_COMMAND % sub_id
+        url = self.base_url + ext
+        response = self.get_http_request(url)
+        s = response['subscription']
+        subscription = SyncSubscription(s['id'], s['version'], s['identityId'], s['feedId'], s['name'],
+                                        s['autoComplete'], s['status'])
+        self.repository.save_sync_subscription(subscription)
+        return subscription
+
+    def execute_subscription_command(self, sub_id, subscription_command_type):
         logger.debug(f"Executing {subscription_command_type} SyncSubscription command")
         ext = Routes.SYNC_SUBSCRIPTION_COMMAND % (sub_id, subscription_command_type)
         url = self.base_url + ext
         body = {
-            'id': sub_id,
-            'version': subscription_version
+            'id': sub_id
         }
         response = self.post_http_request(url, body)
         logger.debug(f'{subscription_command_type} SyncSubscription executed successfully')
@@ -417,8 +430,7 @@ if __name__ == '__main__':
         elif args.cancel_subscription:
             subscription_id = args.cancel_subscription[0]
             version = args.cancel_subscription[1]
-            sub_response = campaign_api_client.execute_subscription_command(subscription_id, version,
-                                                                            SyncSubscriptionCommandType.Cancel.name)
+            sub_response = campaign_api_client.execute_subscription_command(subscription_id, SyncSubscriptionCommandType.Cancel.name)
             logger.info('Canceled subscription: %s', sub_response.subscription)
         elif args.session:
             command = args.session[0]

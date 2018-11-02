@@ -32,11 +32,14 @@ Usage
 9) Complete the Sync Session when done with desired Sync Topics. User provides the Session ID
     * example: `python campaign_api_client.py --session complete 05af361b-6c4b-489f-9673-4cfe7f189ddd`
     * **Note: The Sync process is now Complete**
-10) Optionally Cancel the Sync Subscription. User provides the Subscription ID and Version number
+10) **Optionally Cancel the Sync Subscription. User provides the Subscription ID and Version number**
+
     * example: `python campaign_api_client.py --cancel-subscription 48aae322-a0be-42c3-b010-61534a8aa964 1`
 
 Included in the project is a script named campaign_api_main.py. This script contains example usage of the Campaign API Client by
 demonstrating the complete process of syncing campaign data.
+
+Also included in the project are some simple unit test that demonstrate and validate the usage and behavior of the Campaign API Client.
 
 **Provided and supported by NetFile, Inc. The largest provider of Campaign and SEI services in California.**
 
