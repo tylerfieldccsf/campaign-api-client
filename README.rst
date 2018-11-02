@@ -3,9 +3,6 @@ NetFile Campaign API Sync Client
 Open source Python library to synchronize a local database with the Campaign API data provided by NetFile, Inc.
 This is a command line utility, written in Python, that allows a user to interact with NetFile, Inc.'s public Campaign API.
 
-Features
-    - Supports retrieving CAL Campaign Filing data. The data represents the CAL Document 2.01 Specification
-
 Included in the project is a script named campaign_api_main.py. This script contains example usage of the Campaign API Client by demonstrating the complete process of syncing campaign data. This includes.
     - Check system status to verify the API is available and in a ready state
     - Retrieves Cal Sync Feed

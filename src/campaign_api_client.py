@@ -282,10 +282,8 @@ if __name__ == '__main__':
                         help='Create or Rebuild a local database schema')
     parser.add_argument('--create-subscription', nargs=2, metavar=('feed_name', 'subscription_name'),
                         help='create a new subscription')
-    parser.add_argument('--cancel-subscription', nargs=2, metavar=('subscription_id', 'subscription_version'),
-                        help='Cancel an existing subscription')
-    parser.add_argument('--session', nargs=3,
-                        metavar=('[create, cancel, or complete]', 'session_id', 'session_version'),
+    parser.add_argument('--cancel-subscription', nargs=2, metavar='subscription_id', help='Cancel an existing subscription')
+    parser.add_argument('--session', nargs=2, metavar=('[create, cancel, or complete]', 'session_id'),
                         help='create, cancel, or complete a session')
     parser.add_argument('--sync-topic', nargs=2, metavar=('session_id', 'topic_name'), help='sync a feed topic')
     parser.add_argument('--list-subscriptions', action='store_true', help='retrieve active subscriptions')
@@ -383,9 +381,12 @@ if __name__ == '__main__':
                     page_size = 1000
                     campaign_api_client.sync_filing_activities(sess_id, page_size)
 
-                    # Synchronize Filing Elements
                     logger.info('Synchronizing Element Activities')
-                    campaign_api_client.sync_element_activities(sess_id, page_size)
+                    campaign_api_client.sync_element_activities(sess_id, 'element-activities', page_size)
+
+                    # Synchronize Filing Elements
+                    logger.info('Synchronizing Transaction Activities')
+                    campaign_api_client.sync_element_activities(sess_id, 'transaction-activities', page_size)
 
                     # Complete SyncSession
                     logger.info('Completing session')
@@ -396,8 +397,7 @@ if __name__ == '__main__':
             except Exception as ex:
                 # Cancel Session on error
                 if sync_session is not None:
-                    campaign_api_client.execute_session_command(sync_session.id, sync_session.version,
-                                                                SyncSessionCommandType.Cancel.name)
+                    campaign_api_client.execute_session_command(sync_session.id, SyncSessionCommandType.Cancel.name)
                 logger.error('Error attempting to subscribe and sync with subscription %s: %s', subscription.name, ex)
                 sys.exit()
         elif args.system_report:
@@ -429,7 +429,6 @@ if __name__ == '__main__':
             logger.info('New sync subscription created: %s', sub_response.subscription)
         elif args.cancel_subscription:
             subscription_id = args.cancel_subscription[0]
-            version = args.cancel_subscription[1]
             sub_response = campaign_api_client.execute_subscription_command(subscription_id, SyncSubscriptionCommandType.Cancel.name)
             logger.info('Canceled subscription: %s', sub_response.subscription)
         elif args.session:
@@ -440,12 +439,10 @@ if __name__ == '__main__':
                 logger.info('New session created: %s', session_response.session)
             elif command == 'cancel':
                 sess_id = args.session[1]
-                version = args.session[2]
                 sess_response = campaign_api_client.execute_session_command(sess_id, SyncSessionCommandType.Cancel.name)
                 logger.info('Session canceled: %s', sess_response.session)
             elif command == 'complete':
                 sess_id = args.session[1]
-                version = args.session[2]
                 try:
                     sess_response = campaign_api_client.execute_session_command(sess_id, SyncSessionCommandType.Complete.name)
                     logger.info('Sync Session complete: %s', sess_response.session)

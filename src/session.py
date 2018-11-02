@@ -72,10 +72,9 @@ class SyncSessionCommand:
 
     :param id_arg: Unique Id of the SyncSession
     :param command_type: The type of command to execute
-    :param version: Version number of the SyncSession, required for command execution and incremented after a successful command
     :param permission_name: name of permission
     """
-    def __init__(self, id_arg, command_type, description, version, permission_name):
+    def __init__(self, id_arg, command_type, description, permission_name):
         self.id = id_arg
         self.command_type = command_type
         self.description = description
