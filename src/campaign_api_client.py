@@ -255,7 +255,11 @@ class CampaignApiClient:
 
     def post_http_request(self, url, body=None):
         logger.debug(f'Making POST HTTP request to {url}')
-        response = requests.post(url, auth=(self.user, self.password), data=json.dumps(body), headers=self.headers)
+        try:
+            response = requests.post(url, auth=(self.user, self.password), data=json.dumps(body), headers=self.headers)
+        except Exception as ex:
+            logger.info(ex)
+            sys.exit()
         if response.status_code not in [200, 201]:
             raise Exception(
                 f'Error requesting Url: {url}, Response code: {response.status_code}. Error Message: {response.text}')
@@ -265,7 +269,11 @@ class CampaignApiClient:
         logger.debug(f'Making GET HTTP request to {url}')
         if headers is None:
             headers = self.headers
-        response = requests.get(url, params=params, auth=(self.user, self.password), headers=headers)
+        try:
+            response = requests.get(url, params=params, auth=(self.user, self.password), headers=headers)
+        except Exception as ex:
+            logger.info(ex)
+            sys.exit()
         if response.status_code not in [200, 201]:
             raise Exception(
                 f'Error requesting Url: {url}, Response code: {response.status_code}. Error Message: {response.text}')

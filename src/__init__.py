@@ -9,14 +9,14 @@ stream_handler.setFormatter(formatter)
 file_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
+# Set the logging level to logging.DEBUG for verbose output, or to logging.INFO for less verbose output
 logger.setLevel(logging.INFO)
 
 with open('../resources/config.json', 'r') as f:
     config = json.load(f)
 
 # Variables below are set in resources/config.json file
-# TEST or LIVE
-env = 'TEST'
+env = 'PREVIEW'
 
 # Base URL of the API. Example - "https://netfile.com/filing/api"
 api_url = config[env]['API_URL']
@@ -25,7 +25,7 @@ api_key = config[env]['API_KEY']
 # Password credential to authenticate against the Campaign API
 api_password = config[env]['API_PASSWORD']
 # Name of host to connect to PostgreSQL database
-db_host = config[env]['HOST']
+db_host = config[env]['DB_HOST']
 # Postgres database to connect to
 db_name = config[env]['DB_NAME']
 # Postgres database username

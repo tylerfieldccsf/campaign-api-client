@@ -51,7 +51,7 @@ def main():
                 # Synchronize Filing Activities
                 logger.info('Synchronizing Filing Activities')
                 sync_session = sync_session_response.session
-                page_size = 100
+                page_size = 25
                 api_client.sync_filing_activities(sync_session.id, page_size)
 
                 # Synchronize Filing Elements

@@ -7,20 +7,26 @@ Included in the project is a script named campaign_api_main.py. This script cont
     - Check system status to verify the API is available and in a ready state
     - Retrieves Cal Sync Feed
     - Creates a Sync Subscription for the Cal Sync Feed
-    - Creates a Sync Session for the Sync Subscription. This will track whether or not your sync feed is up to date, or if there more sync data available
+    - Creates a Sync Session for the Sync Subscription. This will track whether or not your sync feed is up to date, or if there is more data available to sync
     - Syncs Cal Feed which includes
         - Campaign Filing Activities
-        - Elements of the Filing Activities known as Element Activities
+        - Elements of the Filing Activities known as Element Activities. An example might be a single Header, Transaction or Signature from a FPPC460 filing..
         - Transaction Activities, which are specific Element Activities that only include Transaction classification
     - If the process runs successfully, the script Completes the Sync Session. This will let the API know that you have received the Sync Feed data successfully.
     - If any errors are encountered while running the process, the script will Cancel the Sync Session. This will tell the API that you have not received the data successfully. The next sync session for the subscription will start the sync from the last known Completed Sync Session
+    - Finally, the Sync Subscription is cancelled. This step is mostly for demonstration purposes, as a Sync Subscription is usually maintained across many Sync Sessions, and does not need to be disposed of unless there will be no subsequent Sync Sessions required.
 
-Also included in the project are some simple unit test that demonstrate and validate the usage and behavior of the Campaign API Client.
+Also included in the project are some simple unit test that demonstrate and validate the usage and behavior of the Campaign API Client and supporting classes.
+
+Model classes have been created for all Sync operations. These classes have documentation to describe their function in the system.
 
 System Requirements
 -------------------
-Required libraries can be installed using Pip (example: $ pip install requests)
-    - Python 3.7
+PostgreSQL Database
+    - Tested using version 9.6
+Python 3
+    - Tested using python 3.7
+Required libraries (These can be installed using Pip (example: $ pip install requests)
     - Requests Library
     - Psycopg2 Library
 
@@ -55,6 +61,8 @@ Usage
 10) Optionally Cancel the Sync Subscription. This subscription will no longer be available for any further operations. User provides the Subscription ID
 
     - example: `python campaign_api_client.py --cancel-subscription 48aae322-a0be-42c3-b010-61534a8aa964`
+
+Log level output and Campaign API target environment are specified in campaign_api_client/src/__init__.py file
 
 **Provided and supported by NetFile, Inc. The largest provider of Campaign and SEI services in California.**
 

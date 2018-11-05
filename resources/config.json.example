@@ -1,16 +1,16 @@
 // Update example values and rename this file to config.json to use.
 {
-    "TEST": {
-        "HOST": "localhost",
-        "DB_NAME": "campaign-api-sync-unit-test",
-        "DB_USER": "postgres",
-        "DB_PASSWORD": "password123",
-        "API_URL": "http://localhost:12061/api",
-        "API_KEY": "text@example.com",
-        "API_PASSWORD": "password123"
+    "PREVIEW": {
+        "DB_HOST": "localhost",
+        "DB_NAME": "campaign-api-sync-preview",
+        "DB_USER": "postgres_user",
+        "DB_PASSWORD": "go_giants",
+        "API_URL": "https://preview.netfile.com/api/filing",
+        "API_KEY": "a6ee0_example_2d5af22e37a90591be5",
+        "API_PASSWORD": "ca89d975_example_03c4157857b42bef7a26e46"
     },
     "LIVE": {
-        "HOST": "localhost",
+        "DB_HOST": "localhost",
         "DB_NAME": "campaign-api-sync",
         "DB_USER": "postgres",
         "DB_PASSWORD": "password123",
